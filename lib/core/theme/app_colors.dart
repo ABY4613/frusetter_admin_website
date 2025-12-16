@@ -9,7 +9,7 @@ class AppColors {
   // New Dashboard Colors
   static const Color dashboardBackground = Color(0xFF111111); // Dark background
   static const Color cardBackground = Color(0xFF1A1F1D); // Dark greenish-grey
-  static const Color accentGreen = Color(0xFF34D399); // Bright green
+  static const Color accentGreen = Color(0xFF8AC53D); // Bright green
   static const Color accentRed = Color(0xFFF87171); // Red
   static const Color accentOrange = Color(0xFFFBBF24); // Amber/Orange
   static const Color textLight = Color(0xFF9CA3AF); // Light grey text
