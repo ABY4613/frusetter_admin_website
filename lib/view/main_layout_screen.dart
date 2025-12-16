@@ -30,7 +30,7 @@ class MainLayoutScreen extends StatelessWidget {
               child: SideBarWidget(),
             ),
             appBar: AppBar(
-              backgroundColor: AppColors.dashboardBackground,
+              backgroundColor: AppColors.white,
               elevation: 0,
               iconTheme: const IconThemeData(color: AppColors.black),
               title: Consumer<NavigationViewModel>(

@@ -18,6 +18,14 @@ class DashboardCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       padding: padding ?? const EdgeInsets.all(24),
       child: child,
@@ -89,7 +97,7 @@ class TodaysMealsCard extends StatelessWidget {
               ),
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
           // Progress Bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -122,12 +130,12 @@ class TodaysMealsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           // Legend
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
             children: [
               _buildLegendItem(AppColors.accentGreen, "Veg", "202"),
-              const SizedBox(width: 16),
               _buildLegendItem(Color(0xFF1E8E64), "Non-Veg", "180"),
-              const SizedBox(width: 16),
               _buildLegendItem(Color(0xFF555555), "Add-ons", "68"),
             ],
           ),
@@ -138,6 +146,7 @@ class TodaysMealsCard extends StatelessWidget {
 
   Widget _buildLegendItem(Color color, String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.circle, size: 8, color: color),
         const SizedBox(width: 6),
@@ -201,26 +210,26 @@ class DeliveryFleetCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: "$activeDrivers ",
-                  style: GoogleFonts.inter(
-                    color: AppColors.black,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.end,
+            children: [
+              Text(
+                "$activeDrivers ",
+                style: GoogleFonts.inter(
+                  color: AppColors.black,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
                 ),
-                TextSpan(
-                  text: "Drivers Online",
-                  style: GoogleFonts.inter(
-                    color: AppColors.black,
-                    fontSize: 14,
-                  ),
+              ),
+              Text(
+                "Drivers Online",
+                style: GoogleFonts.inter(
+                  color: AppColors.black,
+                  fontSize: 14,
+                  height: 2.5, // Align with baseline roughly
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           _buildRow(Icons.check_circle, AppColors.accentGreen, "Delivered",
@@ -297,7 +306,8 @@ class SubscriptionsCard extends StatelessWidget {
               Icon(Icons.people, color: AppColors.black, size: 16),
             ],
           ),
-          Expanded(
+          SizedBox(
+            height: 180,
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
@@ -337,8 +347,10 @@ class SubscriptionsCard extends StatelessWidget {
               ),
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            spacing: 20,
+            runSpacing: 10,
+            alignment: WrapAlignment.spaceBetween,
             children: [
               _buildStat("$active", "Active"),
               _buildStat("$paused", "Paused", color: AppColors.accentOrange),
@@ -403,19 +415,25 @@ class UpcomingVolumeCard extends StatelessWidget {
               ),
             ],
           ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _buildBar("Mon", 400, false),
-              _buildBar("Tue", 420, false),
-              _buildBar("Wed", 480, true), // Active
-              _buildBar("Thu", 410, false),
-              _buildBar("Fri", 450, false),
-              _buildBar("Sat", 300, false),
-              _buildBar("Sun", 150, false),
-            ],
+          const SizedBox(height: 24),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: 350, // Ensure min width for chart
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _buildBar("Mon", 400, false),
+                  _buildBar("Tue", 420, false),
+                  _buildBar("Wed", 480, true), // Active
+                  _buildBar("Thu", 410, false),
+                  _buildBar("Fri", 450, false),
+                  _buildBar("Sat", 300, false),
+                  _buildBar("Sun", 150, false),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -519,7 +537,7 @@ class PendingPaymentsCard extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
           InkWell(
             onTap: () {
               // Demo action
@@ -635,7 +653,7 @@ class FeedbackCard extends StatelessWidget {
               ),
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
