@@ -18,22 +18,73 @@ class MainLayoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.dashboardBackground,
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SideBarWidget(),
-          Expanded(
-            child: Consumer<NavigationViewModel>(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 1000;
+
+        if (isMobile) {
+          return Scaffold(
+            backgroundColor: AppColors.dashboardBackground,
+            drawer: const Drawer(
+              backgroundColor: AppColors.white,
+              child: SideBarWidget(),
+            ),
+            appBar: AppBar(
+              backgroundColor: AppColors.dashboardBackground,
+              elevation: 0,
+              iconTheme: const IconThemeData(color: AppColors.black),
+              title: Consumer<NavigationViewModel>(
+                builder: (context, viewModel, child) => Text(
+                  _getTitleForNavigationItem(viewModel.selectedItem),
+                  style: const TextStyle(
+                      color: AppColors.black, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            body: Consumer<NavigationViewModel>(
               builder: (context, viewModel, child) {
                 return _ScreenLoader(selectedItem: viewModel.selectedItem);
               },
             ),
-          ),
-        ],
-      ),
+          );
+        } else {
+          return Scaffold(
+            backgroundColor: AppColors.dashboardBackground,
+            body: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SideBarWidget(),
+                Expanded(
+                  child: Consumer<NavigationViewModel>(
+                    builder: (context, viewModel, child) {
+                      return _ScreenLoader(
+                          selectedItem: viewModel.selectedItem);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
     );
+  }
+
+  String _getTitleForNavigationItem(NavigationItem item) {
+    switch (item) {
+      case NavigationItem.dashboard:
+        return 'Dashboard';
+      case NavigationItem.mealsPlanning:
+        return 'Meals Planning';
+      case NavigationItem.subscriptions:
+        return 'Subscriptions';
+      case NavigationItem.deliveryFleet:
+        return 'Delivery Fleet';
+      case NavigationItem.financials:
+        return 'Payments & Billing';
+      case NavigationItem.feedback:
+        return 'Feedback';
+    }
   }
 }
 

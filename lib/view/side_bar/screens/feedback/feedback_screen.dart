@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/theme/app_colors.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
+import 'package:frusette_admin_operations_web_dashboard/model/feedback_item.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({Key? key}) : super(key: key);
@@ -16,28 +18,86 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 32),
-            Row(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 900;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 2, child: _buildRecentReviews()),
-                const SizedBox(width: 24),
-                Expanded(flex: 1, child: _buildStatsSidebar()),
+                _buildHeader(isMobile),
+                const SizedBox(height: 32),
+                if (isMobile)
+                  Column(
+                    children: [
+                      _buildStatsSidebar(), // Show stats first on mobile or second? Usually main content first, but stats are summary. Let's put stats at bottom or make them collapsible?
+                      // Let's stick to standard flow: Content then Sidebar or Sidebar then Content.
+                      // For dashboards, usually high level stats are top. But here "Sidebar" is right side.
+                      // Let's put Stats first then Reviews? or Reviews then Stats.
+                      // Looking at content, Stats are "Top Performers", "Sentiment". Reviews are the detailed list.
+                      // Let's put Stats first for mobile summary.
+                      _buildStatsSidebar(),
+                      const SizedBox(height: 32),
+                      _buildRecentReviews(),
+                    ],
+                  )
+                else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 2, child: _buildRecentReviews()),
+                      const SizedBox(width: 24),
+                      Expanded(flex: 1, child: _buildStatsSidebar()),
+                    ],
+                  ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Feedback', // Simplified path
+                    style: GoogleFonts.inter(
+                      color: AppColors.textLight,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Feedback & Insights',
+                    style: GoogleFonts.inter(
+                      color: AppColors.black,
+                      fontSize: 24, // Smaller font
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              // Filter Toggle can be below or beside if space allows.
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildFilterToggle(),
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -168,40 +228,158 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        _buildReviewCard(
-          name: 'Sarah Jenkins',
-          role: 'Verified Subscriber',
-          time: '2 hours ago',
-          rating: 5,
-          comment:
-              'Absolutely loved the Keto Salad today! The dressing was separate which kept everything crisp. The portion size was perfect for lunch. Will definitely order this one again next week.',
-          item: 'Spicy Chicken Keto Salad',
-          avatarColor: Colors.purple.shade100,
-        ),
-        const SizedBox(height: 16),
-        _buildReviewCard(
-          name: 'Michael Chen',
-          role: 'One-time Order',
-          time: 'Yesterday',
-          rating: 3,
-          comment:
-              'The flavors were good, but the rice was a bit undercooked and hard. It made the texture unpleasant. Hope you can fix this for next time.',
-          item: 'Teriyaki Salmon Bowl',
-          avatarColor: Colors.blue.shade100,
-        ),
-        const SizedBox(height: 16),
-        _buildReviewCard(
-          name: 'Anita Lopez',
-          role: 'Verified Subscriber',
-          time: '2 Days ago',
-          rating: 2,
-          comment:
-              'Delivery was late by 45 minutes and the food was cold. Not acceptable for a premium subscription service.',
-          item: 'Delivery Service',
-          isDelivery: true,
-          avatarColor: Colors.orange.shade100,
-        ),
+        ...DummyData.feedbackList.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: InkWell(
+                onTap: () => _showFeedbackDetails(item),
+                borderRadius: BorderRadius.circular(24),
+                child: _buildReviewCard(
+                  name: item.userName,
+                  role:
+                      'Verified Subscriber', // You might want to add role to model later
+                  time:
+                      '${DateTime.now().difference(item.date).inDays} days ago',
+                  rating: item.rating.toInt(),
+                  comment: item.comment,
+                  item: 'Meal Order', // or specific item from model
+                  avatarColor: Colors.blue.shade100, // Dynamic color?
+                ),
+              ),
+            )),
       ],
+    );
+  }
+
+  void _showFeedbackDetails(FeedbackItem item) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 500,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Feedback Details',
+                    style: GoogleFonts.inter(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.blue.shade100,
+                    child: Text(
+                      item.userName[0],
+                      style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.black,
+                          fontSize: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.userName,
+                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: AppColors.black),
+                      ),
+                      Text(
+                        'Verified Subscriber',
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: AppColors.textLight),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${item.rating}/5',
+                    style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Comment:',
+                style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.black),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Text(
+                  item.comment,
+                  style:
+                      GoogleFonts.inter(fontSize: 16, color: AppColors.black),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Close',
+                        style: TextStyle(color: AppColors.textLight)),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Reply sent to ${item.userName}')));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text('Reply',
+                        style: GoogleFonts.inter(color: Colors.white)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

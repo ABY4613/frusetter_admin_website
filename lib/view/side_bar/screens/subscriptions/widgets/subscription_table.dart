@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
+import 'package:frusette_admin_operations_web_dashboard/model/subscription.dart';
+import 'package:intl/intl.dart';
 
 class SubscriptionTable extends StatelessWidget {
   const SubscriptionTable({Key? key}) : super(key: key);
@@ -14,79 +17,60 @@ class SubscriptionTable extends StatelessWidget {
             bottomLeft: Radius.circular(24),
             bottomRight: Radius.circular(24),
           )),
-      child: Column(
-        children: [
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
-            ),
-            child: Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 800;
+
+          Widget tableContent = Column(
+            children: [
+              // Table Header
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                decoration: BoxDecoration(
+                  border: Border(
+                      bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
+                ),
+                child: Row(
+                  children: [
+                    _buildHeaderCell("CUSTOMER NAME", flex: 3),
+                    _buildHeaderCell("STATUS", flex: 2),
+                    _buildHeaderCell("PLAN TYPE", flex: 3),
+                    _buildHeaderCell("DURATION", flex: 2),
+                    _buildHeaderCell("ACTIONS",
+                        flex: 1, align: TextAlign.right),
+                  ],
+                ),
+              ),
+              // Table Rows
+              ...DummyData.subscriptions
+                  .map((sub) => _buildRow(context, sub))
+                  .toList(),
+            ],
+          );
+
+          if (isMobile) {
+            return Column(
               children: [
-                _buildHeaderCell("CUSTOMER NAME", flex: 3),
-                _buildHeaderCell("STATUS", flex: 2),
-                _buildHeaderCell("PLAN TYPE", flex: 3),
-                _buildHeaderCell("DURATION", flex: 2),
-                _buildHeaderCell("ACTIONS", flex: 1, align: TextAlign.right),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: 800, // Min width for table
+                    child: tableContent,
+                  ),
+                ),
+                _buildPagination(),
               ],
-            ),
-          ),
-          // Table Rows
-          _buildRow(
-            name: "Jane Doe",
-            email: "jane.doe@example.com",
-            status: "Active",
-            statusColor: AppColors.accentGreen,
-            plan: "Keto Lunch Plan",
-            frequency: "5 meals/week",
-            startDate: "Oct 12, 2023",
-            endDate: "Nov 12, 2023",
-          ),
-          _buildRow(
-            name: "John Smith",
-            email: "john.smith@example.com",
-            status: "Paused",
-            statusColor: AppColors.accentOrange,
-            plan: "Vegan Dinner Plan",
-            frequency: "3 meals/week",
-            startDate: "Sep 01, 2023",
-            endDate: "Oct 01, 2023",
-          ),
-          _buildRow(
-            name: "Alice Brown",
-            email: "alice.brown@example.com",
-            status: "Expired",
-            statusColor: Color(0xFF4B5563), // Greyish blue for expired
-            plan: "Balanced Meal Plan",
-            frequency: "7 meals/week",
-            startDate: "Aug 15, 2023",
-            endDate: "Sep 15, 2023",
-          ),
-          _buildRow(
-            name: "Robert Fox",
-            email: "robert.fox@example.com",
-            status: "Active",
-            statusColor: AppColors.accentGreen,
-            plan: "Paleo Lunch Plan",
-            frequency: "5 meals/week",
-            startDate: "Oct 20, 2023",
-            endDate: "Nov 20, 2023",
-          ),
-          _buildRow(
-            name: "Emily White",
-            email: "emily.white@example.com",
-            status: "Active",
-            statusColor: AppColors.accentGreen,
-            plan: "Vegetarian Plan",
-            frequency: "7 meals/week",
-            startDate: "Oct 22, 2023",
-            endDate: "Nov 22, 2023",
-          ),
-          // Pagination
-          _buildPagination(),
-        ],
+            );
+          }
+
+          return Column(
+            children: [
+              tableContent,
+              _buildPagination(),
+            ],
+          );
+        },
       ),
     );
   }
@@ -108,147 +92,248 @@ class SubscriptionTable extends StatelessWidget {
     );
   }
 
-  Widget _buildRow({
-    required String name,
-    required String email,
-    required String status,
-    required Color statusColor,
-    required String plan,
-    required String frequency,
-    required String startDate,
-    required String endDate,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
-      ),
-      child: Row(
-        children: [
-          // Customer
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.grey[200],
-                  backgroundImage: const AssetImage(
-                      'assets/images/image.png'), // Using placeholder
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: GoogleFonts.inter(
-                        color: AppColors.black,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      email,
-                      style: GoogleFonts.inter(
-                        color: AppColors.black.withOpacity(0.5),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Status
-          Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: statusColor.withOpacity(0.2)),
+  Widget _buildRow(BuildContext context, Subscription sub) {
+    Color statusColor;
+    switch (sub.status) {
+      case SubscriptionStatus.active:
+        statusColor = AppColors.accentGreen;
+        break;
+      case SubscriptionStatus.paused:
+        statusColor = AppColors.accentOrange;
+        break;
+      case SubscriptionStatus.expired:
+        statusColor = Color(0xFF4B5563);
+        break;
+      case SubscriptionStatus.cancelled:
+        statusColor = AppColors.accentRed;
+        break;
+    }
+
+    return InkWell(
+      onTap: () => _showSubscriptionDetails(context, sub),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: BoxDecoration(
+          border:
+              Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
+        ),
+        child: Row(
+          children: [
+            // Customer
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.grey[200],
+                    child: Icon(Icons.person, color: Colors.grey),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.circle, size: 6, color: statusColor),
-                      const SizedBox(width: 8),
                       Text(
-                        status,
+                        sub.userName,
                         style: GoogleFonts.inter(
-                          color: statusColor,
-                          fontSize: 12,
+                          color: AppColors.black,
                           fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        sub.userEmail,
+                        style: GoogleFonts.inter(
+                          color: AppColors.black.withOpacity(0.5),
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
+                ],
+              ),
+            ),
+            // Status
+            Expanded(
+              flex: 2,
+              child: Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: statusColor.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.circle, size: 6, color: statusColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          sub.status.name.toUpperCase(),
+                          style: GoogleFonts.inter(
+                            color: statusColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Plan
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    sub.planName,
+                    style: GoogleFonts.inter(
+                      color: AppColors.black,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    sub.mealFrequency,
+                    style: GoogleFonts.inter(
+                      color: AppColors.black.withOpacity(0.5),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Duration
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    DateFormat('MMM d, yyyy').format(sub.startDate),
+                    style: GoogleFonts.inter(
+                      color: AppColors.black,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    "to ${DateFormat('MMM d, yyyy').format(sub.endDate)}",
+                    style: GoogleFonts.inter(
+                      color: AppColors.black.withOpacity(0.5),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Actions
+            Expanded(
+              flex: 1,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  icon: Icon(Icons.more_vert,
+                      color: AppColors.black.withOpacity(0.5)),
+                  onPressed: () {},
                 ),
-              ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSubscriptionDetails(BuildContext context, Subscription sub) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 500,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Subscription Details',
+                    style: GoogleFonts.inter(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildDetailRow("Subscriber", sub.userName),
+              _buildDetailRow("Email", sub.userEmail),
+              _buildDetailRow("Plan", sub.planName),
+              _buildDetailRow("Frequency", sub.mealFrequency),
+              _buildDetailRow("Status", sub.status.name.toUpperCase()),
+              _buildDetailRow("Start Date",
+                  DateFormat('MMM d, yyyy').format(sub.startDate)),
+              _buildDetailRow(
+                  "End Date", DateFormat('MMM d, yyyy').format(sub.endDate)),
+              _buildDetailRow("Remaining Meals",
+                  "${sub.remainingCredit} / ${sub.totalCredit}"),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Close',
+                      style: TextStyle(color: AppColors.textLight)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                color: AppColors.textLight,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          // Plan
           Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  plan,
-                  style: GoogleFonts.inter(
-                    color: AppColors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  frequency,
-                  style: GoogleFonts.inter(
-                    color: AppColors.black.withOpacity(0.5),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Duration
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  startDate,
-                  style: GoogleFonts.inter(
-                    color: AppColors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  "to $endDate",
-                  style: GoogleFonts.inter(
-                    color: AppColors.black.withOpacity(0.5),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Actions
-          Expanded(
-            flex: 1,
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: Icon(Icons.more_vert,
-                    color: AppColors.black.withOpacity(0.5)),
-                onPressed: () {},
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
+                color: AppColors.black,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -264,7 +349,7 @@ class SubscriptionTable extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "Showing 1-5 of 48 subscriptions",
+            "Showing 1-${DummyData.subscriptions.length} of ${DummyData.subscriptions.length} subscriptions",
             style: GoogleFonts.inter(
               color: AppColors.black.withOpacity(0.5),
               fontSize: 12,
@@ -279,11 +364,6 @@ class SubscriptionTable extends StatelessWidget {
                     color: AppColors.black.withOpacity(0.5)),
               ),
               _buildPageButton("1", true),
-              _buildPageButton("2", false),
-              _buildPageButton("3", false),
-              Text("...",
-                  style: TextStyle(color: AppColors.black.withOpacity(0.5))),
-              _buildPageButton("8", false),
               IconButton(
                 onPressed: () {},
                 icon: Icon(Icons.chevron_right,

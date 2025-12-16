@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frusette_admin_operations_web_dashboard/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
+import 'package:frusette_admin_operations_web_dashboard/model/delivery.dart';
+import 'package:frusette_admin_operations_web_dashboard/model/subscription.dart';
 
 class DashboardCard extends StatelessWidget {
   final Widget child;
@@ -161,6 +164,16 @@ class DeliveryFleetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final activeDrivers = DummyData.deliveries
+        .where((d) => d.status == DeliveryStatus.inProgress)
+        .length;
+    final delivered = DummyData.deliveries
+        .where((d) => d.status == DeliveryStatus.delivered)
+        .length;
+    final pending = DummyData.deliveries
+        .where((d) => d.status == DeliveryStatus.pending)
+        .length;
+
     return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +205,7 @@ class DeliveryFleetCard extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "12 ",
+                  text: "$activeDrivers ",
                   style: GoogleFonts.inter(
                     color: AppColors.black,
                     fontSize: 32,
@@ -210,13 +223,13 @@ class DeliveryFleetCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildRow(
-              Icons.check_circle, AppColors.accentGreen, "Delivered", "342"),
+          _buildRow(Icons.check_circle, AppColors.accentGreen, "Delivered",
+              "$delivered"),
           const SizedBox(height: 16),
-          _buildRow(
-              Icons.local_shipping, AppColors.accentOrange, "In Transit", "85"),
+          _buildRow(Icons.local_shipping, AppColors.accentOrange, "In Transit",
+              "$activeDrivers"),
           const SizedBox(height: 16),
-          _buildRow(Icons.warning, AppColors.accentRed, "Delayed", "4"),
+          _buildRow(Icons.warning, AppColors.accentRed, "Pending", "$pending"),
         ],
       ),
     );
@@ -253,6 +266,18 @@ class SubscriptionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final active = DummyData.subscriptions
+        .where((s) => s.status == SubscriptionStatus.active)
+        .length;
+    final paused = DummyData.subscriptions
+        .where((s) => s.status == SubscriptionStatus.paused)
+        .length;
+    final expired = DummyData.subscriptions
+        .where((s) => s.status == SubscriptionStatus.expired)
+        .length;
+    final total = DummyData.subscriptions.length;
+    final activePercent = total > 0 ? (active / total) : 0.0;
+
     return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +306,7 @@ class SubscriptionsCard extends StatelessWidget {
                     width: 120,
                     height: 120,
                     child: CircularProgressIndicator(
-                      value: 0.75, // Approx 1.2k/Total
+                      value: activePercent,
                       strokeWidth: 10,
                       backgroundColor: Colors.black.withOpacity(0.1),
                       color: AppColors.accentGreen,
@@ -291,9 +316,9 @@ class SubscriptionsCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        "1.2k",
+                        "$total",
                         style: GoogleFonts.inter(
-                          color: Colors.white,
+                          color: AppColors.black, // Fixed color
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -315,9 +340,9 @@ class SubscriptionsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStat("1,150", "Active"),
-              _buildStat("35", "Paused", color: AppColors.accentOrange),
-              _buildStat("15", "Expired", color: AppColors.accentRed),
+              _buildStat("$active", "Active"),
+              _buildStat("$paused", "Paused", color: AppColors.accentOrange),
+              _buildStat("$expired", "Expired", color: AppColors.accentRed),
             ],
           ),
         ],
@@ -444,6 +469,12 @@ class PendingPaymentsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate pending payments from transactions (where type is income and status is pending - assume pending if we had that status, mainly mock using income for now or just hardcode for demo purposes if transactions are all completed)
+    // In DummyData transactions are all completed. Let's mock it based on dashboard stats or just show a static value derived from 'Overdue Invoices' logic if we had it.
+    // Actually let's use a fixed value but derived from a hypothetical calculation for the demo feel.
+    final pendingAmount = 3400.00;
+    final pendingCount = 15;
+
     return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +504,7 @@ class PendingPaymentsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            "\$3,400",
+            "\$${pendingAmount.toStringAsFixed(0)}",
             style: GoogleFonts.inter(
               color: AppColors.black,
               fontSize: 36,
@@ -481,7 +512,7 @@ class PendingPaymentsCard extends StatelessWidget {
             ),
           ),
           Text(
-            "Due from 15 Customers",
+            "Due from $pendingCount Customers",
             style: GoogleFonts.inter(
               color: AppColors.accentRed,
               fontSize: 14,
@@ -489,26 +520,33 @@ class PendingPaymentsCard extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.send, color: Colors.black, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  "Send Reminders",
-                  style: GoogleFonts.inter(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
+          InkWell(
+            onTap: () {
+              // Demo action
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text("Reminders sent!")));
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.send, color: Colors.black, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Send Reminders",
+                    style: GoogleFonts.inter(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -522,6 +560,14 @@ class FeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avgRating = DummyData.feedbackList.isNotEmpty
+        ? DummyData.feedbackList.map((f) => f.rating).reduce((a, b) => a + b) /
+            DummyData.feedbackList.length
+        : 0.0;
+
+    // Complaints logic (mocked for demo as feedback list is positive in dummy data)
+    final complaints = 3;
+
     return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -553,7 +599,7 @@ class FeedbackCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                "4.8",
+                avgRating.toStringAsFixed(1),
                 style: GoogleFonts.inter(
                   color: AppColors.black,
                   fontSize: 36,
@@ -565,14 +611,18 @@ class FeedbackCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
-                      Icon(Icons.star, color: AppColors.accentOrange, size: 16),
-                      Icon(Icons.star, color: AppColors.accentOrange, size: 16),
-                      Icon(Icons.star, color: AppColors.accentOrange, size: 16),
-                      Icon(Icons.star, color: AppColors.accentOrange, size: 16),
-                      Icon(Icons.star_half,
-                          color: AppColors.accentOrange, size: 16),
-                    ],
+                    children: List.generate(5, (index) {
+                      if (index < avgRating.floor()) {
+                        return Icon(Icons.star,
+                            color: AppColors.accentOrange, size: 16);
+                      } else if (index < avgRating) {
+                        return Icon(Icons.star_half,
+                            color: AppColors.accentOrange, size: 16);
+                      } else {
+                        return Icon(Icons.star_border,
+                            color: AppColors.accentOrange, size: 16);
+                      }
+                    }),
                   ),
                   Text(
                     "Last 30 days",
@@ -609,7 +659,7 @@ class FeedbackCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "3 Complaints",
+                        "$complaints Complaints",
                         style: GoogleFonts.inter(
                           color: AppColors.black,
                           fontWeight: FontWeight.w600,

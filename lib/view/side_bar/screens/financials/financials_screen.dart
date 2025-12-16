@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/theme/app_colors.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
+import 'package:frusette_admin_operations_web_dashboard/model/transaction_model.dart';
+import 'package:intl/intl.dart';
 
 class FinancialsScreen extends StatefulWidget {
   const FinancialsScreen({Key? key}) : super(key: key);
@@ -16,22 +19,37 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 32),
-            _buildStatsCards(),
-            const SizedBox(height: 32),
-            _buildFiltersAndSearch(),
-            const SizedBox(height: 16),
-            _buildTransactionsTable(),
-            const SizedBox(height: 16),
-            _buildPagination(),
-          ],
-        ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 900;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 32),
+                _buildStatsCards(isMobile),
+                const SizedBox(height: 32),
+                _buildFiltersAndSearch(isMobile),
+                const SizedBox(height: 16),
+                if (isMobile)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: 900, // Min width for table
+                      child: _buildTransactionsTable(),
+                    ),
+                  )
+                else
+                  _buildTransactionsTable(),
+                const SizedBox(height: 16),
+                _buildPagination(),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -105,41 +123,47 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
     );
   }
 
-  Widget _buildStatsCards() {
+  Widget _buildStatsCards(bool isMobile) {
+    final cards = [
+      _buildStatCard(
+        title: 'Total Revenue',
+        value: '\$${DummyData.dashboardStats.totalRevenue.toStringAsFixed(2)}',
+        percentage: '+5%',
+        isPositive: true,
+        icon: Icons.attach_money,
+        iconColor: Colors.green,
+      ),
+      const SizedBox(width: 24, height: 24), // Adjust spacing
+      _buildStatCard(
+        title: 'Pending Amount',
+        value: '\$3,200.00',
+        percentage: '+2%',
+        isPositive: true,
+        icon: Icons.pending_actions,
+        iconColor: Colors.orange,
+      ),
+      const SizedBox(width: 24, height: 24), // Adjust spacing
+      _buildStatCard(
+        title: 'Overdue Invoices',
+        value: '15',
+        percentage: '-1%',
+        isPositive: false,
+        icon: Icons.warning_amber,
+        iconColor: Colors.red,
+      ),
+    ];
+
+    if (isMobile) {
+      return Column(children: cards);
+    }
+
     return Row(
       children: [
-        Expanded(
-          child: _buildStatCard(
-            title: 'Total Revenue',
-            value: '\$12,450.00',
-            percentage: '+5%',
-            isPositive: true,
-            icon: Icons.attach_money,
-            iconColor: Colors.green,
-          ),
-        ),
+        Expanded(child: cards[0]),
         const SizedBox(width: 24),
-        Expanded(
-          child: _buildStatCard(
-            title: 'Pending Amount',
-            value: '\$3,200.00',
-            percentage: '+2%',
-            isPositive: true,
-            icon: Icons.pending_actions,
-            iconColor: Colors.orange,
-          ),
-        ),
+        Expanded(child: cards[2]), // Note: index 1 is SizedBox
         const SizedBox(width: 24),
-        Expanded(
-          child: _buildStatCard(
-            title: 'Overdue Invoices',
-            value: '15',
-            percentage: '-1%',
-            isPositive: false,
-            icon: Icons.warning_amber,
-            iconColor: Colors.red,
-          ),
-        ),
+        Expanded(child: cards[4]),
       ],
     );
   }
@@ -232,42 +256,61 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
     );
   }
 
-  Widget _buildFiltersAndSearch() {
+  Widget _buildFiltersAndSearch(bool isMobile) {
+    Widget filters = Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: SingleChildScrollView(
+        // Allow filters to scroll if needed
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterTab('All'),
+            _buildFilterTab('Pending'),
+            _buildFilterTab('Paid'),
+            _buildFilterTab('Overdue'),
+          ],
+        ),
+      ),
+    );
+
+    Widget search = Container(
+      width: isMobile ? double.infinity : 300,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Search customer name...',
+          hintStyle: GoogleFonts.inter(color: AppColors.textLight),
+          border: InputBorder.none,
+          icon: Icon(Icons.search, color: AppColors.textLight),
+        ),
+      ),
+    );
+
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          filters,
+          const SizedBox(height: 16),
+          search,
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Row(
-            children: [
-              _buildFilterTab('All'),
-              _buildFilterTab('Pending'),
-              _buildFilterTab('Paid'),
-              _buildFilterTab('Overdue'),
-            ],
-          ),
-        ),
-        Container(
-          width: 300,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search customer name...',
-              hintStyle: GoogleFonts.inter(color: AppColors.textLight),
-              border: InputBorder.none,
-              icon: Icon(Icons.search, color: AppColors.textLight),
-            ),
-          ),
-        ),
+        filters,
+        search,
       ],
     );
   }
@@ -338,59 +381,20 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           _buildTableHeader(),
-          _buildTableRow(
-            name: 'Jane Cooper',
-            id: '#INV-2023-001',
-            amount: '\$450.00',
-            dueDate: 'Oct 24, 2023',
-            paymentMode: 'Credit Card',
-            status: 'Paid',
-            avatarUrl: 'https://i.pravatar.cc/150?u=1',
-            paymentIcon: Icons.credit_card,
-          ),
-          _buildTableRow(
-            name: 'Robert Fox',
-            id: '#INV-2023-004',
-            amount: '\$1,200.00',
-            dueDate: 'Oct 20, 2023',
-            paymentMode: 'Bank Transfer',
-            status: 'Overdue',
-            isOverdue: true,
-            avatarUrl: 'https://i.pravatar.cc/150?u=2',
-            paymentIcon: Icons.account_balance,
-          ),
-          _buildTableRow(
-            name: 'Cody Fisher',
-            id: '#INV-2023-008',
-            amount: '\$89.00',
-            dueDate: 'Oct 28, 2023',
-            paymentMode: 'Apple Pay',
-            status: 'Pending',
-            isPending: true,
-            avatarUrl: 'https://i.pravatar.cc/150?u=3',
-            paymentIcon: Icons.phone_iphone,
-          ),
-          _buildTableRow(
-            name: 'Esther Howard',
-            id: '#INV-2023-012',
-            amount: '\$220.00',
-            dueDate: 'Oct 22, 2023',
-            paymentMode: 'Credit Card',
-            status: 'Paid',
-            avatarUrl: 'https://i.pravatar.cc/150?u=4',
-            paymentIcon: Icons.credit_card,
-          ),
-          _buildTableRow(
-            name: 'Guy Hawkins',
-            id: '#INV-2023-015',
-            amount: '\$34.50',
-            dueDate: 'Oct 15, 2023',
-            paymentMode: 'PayPal',
-            status: 'Overdue',
-            isOverdue: true,
-            avatarUrl: 'https://i.pravatar.cc/150?u=5',
-            paymentIcon: Icons.paypal,
-          ),
+          ...DummyData.transactions.map((trx) => _buildTableRow(
+                name:
+                    'Unknown Customer', // Transaction model doesn't have customer name, mocked for now
+                id: trx.id,
+                amount: '\$${trx.amount.toStringAsFixed(2)}',
+                dueDate: DateFormat('MMM d, yyyy').format(trx.date),
+                paymentMode: 'Credit Card', // Mocked
+                status: trx.status.name.toUpperCase(),
+                isOverdue: false, // Calculate based on date if needed
+                isPending: trx.status == TransactionStatus.pending,
+                avatarUrl: 'https://i.pravatar.cc/150?u=${trx.id}',
+                paymentIcon: Icons.credit_card,
+                transaction: trx,
+              )),
         ],
       ),
     );
@@ -438,6 +442,7 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
     required IconData paymentIcon,
     bool isOverdue = false,
     bool isPending = false,
+    TransactionModel? transaction,
   }) {
     Color statusColor = Colors.green;
     Color statusBg = Colors.green.withOpacity(0.1);
@@ -450,46 +455,47 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
       statusBg = Colors.orange.withOpacity(0.1);
     }
 
-    // Checking specifically for overdue text color in the design request if needed
-    // The design has red text for Overdue date sometimes, but let's stick to standard black unless specified.
-    // The image shows "Oct 20, 2023" in RED for overdue row.
-
     return TableRow(
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
       ),
       children: [
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage(avatarUrl),
-                backgroundColor: Colors.grey.shade200,
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: GoogleFonts.inter(
-                      color: AppColors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+        InkWell(
+          onTap: transaction != null
+              ? () => _showTransactionDetails(transaction)
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(avatarUrl),
+                  backgroundColor: Colors.grey.shade200,
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: GoogleFonts.inter(
+                        color: AppColors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                  Text(
-                    id,
-                    style: GoogleFonts.inter(
-                      color: AppColors.textLight,
-                      fontSize: 12,
+                    Text(
+                      id,
+                      style: GoogleFonts.inter(
+                        color: AppColors.textLight,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         Padding(
@@ -576,6 +582,93 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
     );
   }
 
+  void _showTransactionDetails(TransactionModel trx) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 500,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Transaction Details',
+                    style: GoogleFonts.inter(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildDetailRow("Transaction ID", trx.id),
+              _buildDetailRow("Description", trx.description),
+              _buildDetailRow("Amount", "\$${trx.amount.toStringAsFixed(2)}"),
+              _buildDetailRow(
+                  "Date", DateFormat('MMM d, yyyy').format(trx.date)),
+              _buildDetailRow("Type", trx.type.name.toUpperCase()),
+              _buildDetailRow("Status", trx.status.name.toUpperCase()),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Close',
+                      style: TextStyle(color: AppColors.textLight)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                color: AppColors.textLight,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
+                color: AppColors.black,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPagination() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -586,13 +679,13 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
             children: [
               const TextSpan(text: 'Showing '),
               TextSpan(
-                text: '1-5',
+                text: '1-${DummyData.transactions.length}',
                 style: GoogleFonts.inter(
                     fontWeight: FontWeight.bold, color: AppColors.black),
               ),
               const TextSpan(text: ' of '),
               TextSpan(
-                text: '48',
+                text: '${DummyData.transactions.length}',
                 style: GoogleFonts.inter(
                     fontWeight: FontWeight.bold, color: AppColors.black),
               ),
@@ -622,8 +715,7 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
             ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    AppColors.black, // Dark button for next usually
+                backgroundColor: AppColors.black,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
