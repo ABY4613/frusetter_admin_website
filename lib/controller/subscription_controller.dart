@@ -8,7 +8,8 @@ import '../model/subscription.dart';
 class SubscriptionController with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
-  List<Subscription> _subscriptions = [];
+  List<Subscription> _allSubscriptions = []; // All subscriptions from API
+  List<Subscription> _filteredSubscriptions = []; // Filtered results
   Pagination? _pagination;
 
   // Filter state
@@ -19,17 +20,35 @@ class SubscriptionController with ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  List<Subscription> get subscriptions => _subscriptions;
+
+  /// Returns paginated subscriptions for display
+  List<Subscription> get subscriptions {
+    final startIndex = (_currentPage - 1) * _limit;
+    final endIndex = startIndex + _limit;
+
+    if (startIndex >= _filteredSubscriptions.length) {
+      return [];
+    }
+
+    return _filteredSubscriptions.sublist(
+      startIndex,
+      endIndex > _filteredSubscriptions.length
+          ? _filteredSubscriptions.length
+          : endIndex,
+    );
+  }
+
   Pagination? get pagination => _pagination;
   String get searchQuery => _searchQuery;
   String get statusFilter => _statusFilter;
   int get currentPage => _currentPage;
   int get limit => _limit;
 
-  /// Fetch subscriptions from API with filters
+  /// Total filtered items count
+  int get totalFilteredCount => _filteredSubscriptions.length;
+
+  /// Fetch all subscriptions from API
   Future<void> fetchSubscriptions({
-    String? search,
-    String? status,
     int? page,
     int? limit,
   }) async {
@@ -37,9 +56,6 @@ class SubscriptionController with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    // Update filter state
-    if (search != null) _searchQuery = search;
-    if (status != null) _statusFilter = status;
     if (page != null) _currentPage = page;
     if (limit != null) _limit = limit;
 
@@ -47,11 +63,10 @@ class SubscriptionController with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('access_token');
 
+      // Fetch all subscriptions (large limit to get all)
       final queryParams = {
-        'search': _searchQuery,
-        'status': _statusFilter,
-        'page': _currentPage.toString(),
-        'limit': _limit.toString(),
+        'page': '1',
+        'limit': '1000', // Get all subscriptions for frontend filtering
       };
 
       final uri =
@@ -75,41 +90,96 @@ class SubscriptionController with ChangeNotifier {
         final data = jsonDecode(response.body);
         final subscriptionsResponse = SubscriptionsResponse.fromJson(data);
 
-        _subscriptions = subscriptionsResponse.subscriptions;
-        _pagination = subscriptionsResponse.pagination;
+        _allSubscriptions = subscriptionsResponse.subscriptions;
+        _applyFilters();
       } else {
         _errorMessage = 'Failed to fetch subscriptions: ${response.body}';
-        _subscriptions = [];
+        _allSubscriptions = [];
+        _filteredSubscriptions = [];
+        _updatePagination();
       }
     } catch (e) {
       _errorMessage = 'Connection error: $e';
       debugPrint('Fetch Subscriptions Error: $e');
-      _subscriptions = [];
+      _allSubscriptions = [];
+      _filteredSubscriptions = [];
+      _updatePagination();
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  /// Update search query and refetch
+  /// Apply search and status filters on frontend
+  void _applyFilters() {
+    _filteredSubscriptions = _allSubscriptions.where((sub) {
+      // Apply status filter
+      if (_statusFilter != 'all' && sub.status.name != _statusFilter) {
+        return false;
+      }
+
+      // Apply search filter (case-insensitive)
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        final matchesName = sub.userName.toLowerCase().contains(query);
+        final matchesEmail = sub.userEmail.toLowerCase().contains(query);
+        final matchesPhone = sub.user.phone.toLowerCase().contains(query);
+        final matchesPlan = sub.planName.toLowerCase().contains(query);
+
+        if (!matchesName && !matchesEmail && !matchesPhone && !matchesPlan) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
+
+    // Sort alphabetically by name
+    _filteredSubscriptions.sort(
+        (a, b) => a.userName.toLowerCase().compareTo(b.userName.toLowerCase()));
+
+    _updatePagination();
+  }
+
+  /// Update pagination based on filtered results
+  void _updatePagination() {
+    final totalItems = _filteredSubscriptions.length;
+    final totalPages = (totalItems / _limit).ceil();
+
+    _pagination = Pagination(
+      total: totalItems,
+      page: _currentPage,
+      limit: _limit,
+      totalPages: totalPages > 0 ? totalPages : 1,
+    );
+
+    // Ensure current page is valid
+    if (_currentPage > _pagination!.totalPages && _pagination!.totalPages > 0) {
+      _currentPage = _pagination!.totalPages;
+    }
+  }
+
+  /// Update search query and filter locally
   void updateSearch(String query) {
     _searchQuery = query;
     _currentPage = 1; // Reset to first page on new search
-    fetchSubscriptions();
+    _applyFilters();
+    notifyListeners();
   }
 
-  /// Update status filter and refetch
+  /// Update status filter and filter locally
   void updateStatusFilter(String status) {
     _statusFilter = status;
     _currentPage = 1; // Reset to first page on filter change
-    fetchSubscriptions();
+    _applyFilters();
+    notifyListeners();
   }
 
   /// Go to specific page
   void goToPage(int page) {
     if (_pagination != null && page >= 1 && page <= _pagination!.totalPages) {
       _currentPage = page;
-      fetchSubscriptions();
+      notifyListeners();
     }
   }
 
@@ -117,7 +187,7 @@ class SubscriptionController with ChangeNotifier {
   void nextPage() {
     if (_pagination != null && _currentPage < _pagination!.totalPages) {
       _currentPage++;
-      fetchSubscriptions();
+      notifyListeners();
     }
   }
 
@@ -125,11 +195,11 @@ class SubscriptionController with ChangeNotifier {
   void previousPage() {
     if (_currentPage > 1) {
       _currentPage--;
-      fetchSubscriptions();
+      notifyListeners();
     }
   }
 
-  /// Refresh subscriptions (reset filters and refetch)
+  /// Refresh subscriptions (refetch from API)
   Future<void> refreshSubscriptions() async {
     await fetchSubscriptions();
   }
@@ -212,5 +282,88 @@ class SubscriptionController with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     return false;
+  }
+
+  /// Update an existing subscription
+  Future<bool> updateSubscription({
+    required String subscriptionId,
+    String? email,
+    String? phone,
+    String? password,
+    String? fullName,
+    String? planId,
+    DateTime? startDate,
+    double? totalAmount,
+    String? status,
+    String? paymentStatus,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      final url = Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.adminSubscriptions}/$subscriptionId');
+      debugPrint('Updating subscription at $url');
+
+      // Build body with only provided fields
+      final body = <String, dynamic>{};
+      if (email != null) body["email"] = email;
+      if (phone != null) body["phone"] = phone;
+      if (password != null && password.isNotEmpty) body["password"] = password;
+      if (fullName != null) body["full_name"] = fullName;
+      if (planId != null) body["plan_id"] = planId;
+      if (startDate != null) {
+        final utcDate = startDate.toUtc();
+        body["start_date"] =
+            utcDate.toIso8601String().replaceFirst(RegExp(r'\.\d{3}'), '');
+      }
+      if (totalAmount != null) body["total_amount"] = totalAmount;
+      if (status != null) body["status"] = status;
+      if (paymentStatus != null) body["payment_status"] = paymentStatus;
+
+      debugPrint('Update body: ${jsonEncode(body)}');
+
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      debugPrint(
+          'Update Subscription Response: ${response.statusCode} ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _isLoading = false;
+        notifyListeners();
+        // Refresh subscriptions list after updating
+        await fetchSubscriptions();
+        return true;
+      } else {
+        _errorMessage = 'Failed to update subscription: ${response.body}';
+      }
+    } catch (e) {
+      _errorMessage = 'Connection error: $e';
+      debugPrint('Update Subscription Error: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  /// Toggle subscription status between active and paused
+  Future<bool> toggleSubscriptionStatus(
+      String subscriptionId, String newStatus) async {
+    return await updateSubscription(
+      subscriptionId: subscriptionId,
+      status: newStatus,
+    );
   }
 }

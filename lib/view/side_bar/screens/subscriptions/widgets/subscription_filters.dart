@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../../../../controller/subscription_controller.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
 
 class SubscriptionFilters extends StatefulWidget {
   const SubscriptionFilters({Key? key}) : super(key: key);
@@ -14,20 +13,16 @@ class SubscriptionFilters extends StatefulWidget {
 
 class _SubscriptionFiltersState extends State<SubscriptionFilters> {
   final TextEditingController _searchController = TextEditingController();
-  Timer? _debounce;
 
   @override
   void dispose() {
     _searchController.dispose();
-    _debounce?.cancel();
     super.dispose();
   }
 
   void _onSearchChanged(String query) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      context.read<SubscriptionController>().updateSearch(query);
-    });
+    // Immediate filtering since it's frontend-based
+    context.read<SubscriptionController>().updateSearch(query);
   }
 
   @override

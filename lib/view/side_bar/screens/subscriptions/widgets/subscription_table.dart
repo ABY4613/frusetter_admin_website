@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:frusette_admin_operations_web_dashboard/model/subscription.dart';
 import 'package:frusette_admin_operations_web_dashboard/controller/subscription_controller.dart';
 import 'package:intl/intl.dart';
+import 'edit_subscription_dialog.dart';
 
 class SubscriptionTable extends StatelessWidget {
   const SubscriptionTable({Key? key}) : super(key: key);
@@ -400,69 +401,182 @@ class SubscriptionTable extends StatelessWidget {
                 child: PopupMenuButton<String>(
                   icon: Icon(Icons.more_vert,
                       color: AppColors.black.withOpacity(0.5)),
-                  onSelected: (value) {
-                    // Handle menu actions
+                  onSelected: (value) async {
+                    final controller = Provider.of<SubscriptionController>(
+                        context,
+                        listen: false);
+
                     switch (value) {
                       case 'view':
                         _showSubscriptionDetails(context, sub);
                         break;
                       case 'edit':
-                        // TODO: Implement edit
+                        showDialog(
+                          context: context,
+                          builder: (context) =>
+                              EditSubscriptionDialog(subscription: sub),
+                        );
                         break;
                       case 'pause':
-                        // TODO: Implement pause
+                        final success = await controller
+                            .toggleSubscriptionStatus(sub.id, 'paused');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(success
+                                  ? 'Subscription paused successfully'
+                                  : controller.errorMessage ??
+                                      'Failed to pause subscription'),
+                              backgroundColor:
+                                  success ? Colors.green : Colors.red,
+                            ),
+                          );
+                        }
+                        break;
+                      case 'activate':
+                        final success = await controller
+                            .toggleSubscriptionStatus(sub.id, 'active');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(success
+                                  ? 'Subscription activated successfully'
+                                  : controller.errorMessage ??
+                                      'Failed to activate subscription'),
+                              backgroundColor:
+                                  success ? Colors.green : Colors.red,
+                            ),
+                          );
+                        }
                         break;
                       case 'cancel':
-                        // TODO: Implement cancel
+                        // Show confirmation dialog
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: Text('Cancel Subscription',
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.bold)),
+                            content: Text(
+                                'Are you sure you want to cancel this subscription? This action cannot be undone.',
+                                style: GoogleFonts.inter()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: Text('No',
+                                    style: GoogleFonts.inter(
+                                        color: AppColors.textLight)),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red),
+                                child: Text('Yes, Cancel',
+                                    style:
+                                        GoogleFonts.inter(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          final success = await controller
+                              .toggleSubscriptionStatus(sub.id, 'cancelled');
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(success
+                                    ? 'Subscription cancelled successfully'
+                                    : controller.errorMessage ??
+                                        'Failed to cancel subscription'),
+                                backgroundColor:
+                                    success ? Colors.green : Colors.red,
+                              ),
+                            );
+                          }
+                        }
                         break;
                     }
                   },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'view',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.visibility_outlined, size: 18),
-                          const SizedBox(width: 8),
-                          Text('View Details',
-                              style: GoogleFonts.inter(fontSize: 14)),
-                        ],
+                  itemBuilder: (context) {
+                    final isActive = sub.status == SubscriptionStatus.active;
+                    final isPaused = sub.status == SubscriptionStatus.paused;
+                    final isCancelled =
+                        sub.status == SubscriptionStatus.cancelled;
+                    final isExpired = sub.status == SubscriptionStatus.expired;
+
+                    return [
+                      PopupMenuItem(
+                        value: 'view',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.visibility_outlined, size: 18),
+                            const SizedBox(width: 8),
+                            Text('View Details',
+                                style: GoogleFonts.inter(fontSize: 14)),
+                          ],
+                        ),
                       ),
-                    ),
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.edit_outlined, size: 18),
-                          const SizedBox(width: 8),
-                          Text('Edit', style: GoogleFonts.inter(fontSize: 14)),
-                        ],
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit_outlined, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Edit',
+                                style: GoogleFonts.inter(fontSize: 14)),
+                          ],
+                        ),
                       ),
-                    ),
-                    PopupMenuItem(
-                      value: 'pause',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.pause_circle_outline, size: 18),
-                          const SizedBox(width: 8),
-                          Text('Pause', style: GoogleFonts.inter(fontSize: 14)),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'cancel',
-                      child: Row(
-                        children: [
-                          Icon(Icons.cancel_outlined,
-                              size: 18, color: Colors.red.shade400),
-                          const SizedBox(width: 8),
-                          Text('Cancel',
-                              style: GoogleFonts.inter(
-                                  fontSize: 14, color: Colors.red.shade400)),
-                        ],
-                      ),
-                    ),
-                  ],
+                      // Show Pause for active subscriptions
+                      if (isActive)
+                        PopupMenuItem(
+                          value: 'pause',
+                          child: Row(
+                            children: [
+                              Icon(Icons.pause_circle_outline,
+                                  size: 18, color: AppColors.accentOrange),
+                              const SizedBox(width: 8),
+                              Text('Pause',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: AppColors.accentOrange)),
+                            ],
+                          ),
+                        ),
+                      // Show Activate for paused subscriptions
+                      if (isPaused)
+                        PopupMenuItem(
+                          value: 'activate',
+                          child: Row(
+                            children: [
+                              Icon(Icons.play_circle_outline,
+                                  size: 18, color: AppColors.accentGreen),
+                              const SizedBox(width: 8),
+                              Text('Activate',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: AppColors.accentGreen)),
+                            ],
+                          ),
+                        ),
+                      // Show Cancel for active or paused subscriptions
+                      if (!isCancelled && !isExpired)
+                        PopupMenuItem(
+                          value: 'cancel',
+                          child: Row(
+                            children: [
+                              Icon(Icons.cancel_outlined,
+                                  size: 18, color: Colors.red.shade400),
+                              const SizedBox(width: 8),
+                              Text('Cancel',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: Colors.red.shade400)),
+                            ],
+                          ),
+                        ),
+                    ];
+                  },
                 ),
               ),
             ),
