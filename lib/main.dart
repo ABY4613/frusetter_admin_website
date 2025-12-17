@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/view_models/navigation_view_model.dart';
 import 'controller/auth_controller.dart';
+import 'controller/meals_controller.dart';
 //import 'view/side_bar/screens/company_management/view_models/company_view_model.dart';
 
 void main() {
@@ -14,6 +15,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => NavigationViewModel()),
         ChangeNotifierProvider(create: (_) => AuthController()),
+        ChangeNotifierProvider(create: (_) => MealsController()),
         // ChangeNotifierProvider(create: (_) => CompanyViewModel()),
       ],
       child: const MyApp(),

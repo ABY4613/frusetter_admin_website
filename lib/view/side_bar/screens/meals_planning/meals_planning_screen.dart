@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
+import 'package:provider/provider.dart';
+import '../../../../controller/meals_controller.dart';
 import 'package:frusette_admin_operations_web_dashboard/model/meal_plan.dart';
 
 class MealsPlanningScreen extends StatefulWidget {
@@ -14,6 +16,14 @@ class MealsPlanningScreen extends StatefulWidget {
 class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
   String _selectedPlanType = 'Standard';
   String _selectedWeek = 'Oct 24 - Oct 30';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MealsController>(context, listen: false).fetchMealsOverview();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -232,55 +242,69 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
   }
 
   Widget _buildStatsRow(bool isMobile) {
-    final cards = [
-      _buildStatCard(
-        title: 'Active Recipes',
-        value: '124',
-        subtitle: '12 new this week',
-        icon: Icons.book,
-        color: AppColors.primaryColor,
-      ),
-      const SizedBox(width: 24, height: 16),
-      _buildStatCard(
-        title: 'Subscribed Users',
-        value: '8,540',
-        subtitle: '+5% vs last week',
-        icon: Icons.people_outline,
-        color: Colors.blue,
-      ),
-      const SizedBox(width: 24, height: 16),
-      _buildStatCard(
-        title: 'Low Stock Items',
-        value: '3',
-        subtitle: 'Requires attention',
-        icon: Icons.warning_amber_rounded,
-        color: AppColors.accentOrange,
-        isWarning: true,
-      ),
-      const SizedBox(width: 24, height: 16),
-      _buildStatCard(
-        title: 'Avg. Calories',
-        value: '450',
-        subtitle: 'Per meal serving',
-        icon: Icons.local_fire_department_outlined,
-        color: AppColors.accentRed,
-      ),
-    ];
+    return Consumer<MealsController>(
+      builder: (context, controller, child) {
+        if (controller.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    if (isMobile) {
-      return Column(children: cards);
-    }
+        if (controller.errorMessage != null) {
+          return Center(child: Text('Error: ${controller.errorMessage}'));
+        }
 
-    return Row(
-      children: [
-        Expanded(child: cards[0]),
-        const SizedBox(width: 24),
-        Expanded(child: cards[2]), // spacer
-        const SizedBox(width: 24),
-        Expanded(child: cards[4]),
-        const SizedBox(width: 24),
-        Expanded(child: cards[6]),
-      ],
+        final summary = controller.overviewData?.summary;
+        if (summary == null) return const SizedBox();
+
+        final cards = [
+          _buildStatCard(
+            title: 'Breakfast',
+            value: '${summary.breakfast}',
+            subtitle: 'Daily Count',
+            icon: Icons.breakfast_dining,
+            color: Colors.orange,
+          ),
+          const SizedBox(width: 24, height: 16),
+          _buildStatCard(
+            title: 'Lunch',
+            value: '${summary.lunch}',
+            subtitle: 'Daily Count',
+            icon: Icons.lunch_dining,
+            color: Colors.green,
+          ),
+          const SizedBox(width: 24, height: 16),
+          _buildStatCard(
+            title: 'Dinner',
+            value: '${summary.dinner}',
+            subtitle: 'Daily Count',
+            icon: Icons.dinner_dining,
+            color: Colors.blue,
+          ),
+          const SizedBox(width: 24, height: 16),
+          _buildStatCard(
+            title: 'Total Meals',
+            value: '${summary.totalMeals}',
+            subtitle: 'Summary',
+            icon: Icons.restaurant,
+            color: AppColors.primaryColor,
+          ),
+        ];
+
+        if (isMobile) {
+          return Column(children: cards);
+        }
+
+        return Row(
+          children: [
+            Expanded(child: cards[0]),
+            const SizedBox(width: 24),
+            Expanded(child: cards[2]), // spacer
+            const SizedBox(width: 24),
+            Expanded(child: cards[4]),
+            const SizedBox(width: 24),
+            Expanded(child: cards[6]),
+          ],
+        );
+      },
     );
   }
 

@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
 import 'package:frusette_admin_operations_web_dashboard/model/delivery.dart';
 import 'package:frusette_admin_operations_web_dashboard/model/subscription.dart';
+import 'package:provider/provider.dart';
+import '../../../../../../controller/meals_controller.dart';
 
 class DashboardCard extends StatelessWidget {
   final Widget child;
@@ -33,114 +35,145 @@ class DashboardCard extends StatelessWidget {
   }
 }
 
-class TodaysMealsCard extends StatelessWidget {
+class TodaysMealsCard extends StatefulWidget {
   const TodaysMealsCard({Key? key}) : super(key: key);
 
   @override
+  State<TodaysMealsCard> createState() => _TodaysMealsCardState();
+}
+
+class _TodaysMealsCardState extends State<TodaysMealsCard> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MealsController>(context, listen: false).fetchMealsOverview();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DashboardCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Consumer<MealsController>(
+      builder: (context, controller, child) {
+        if (controller.isLoading) {
+          return const DashboardCard(
+              child: Center(child: CircularProgressIndicator()));
+        }
+
+        final summary = controller.overviewData?.summary;
+        final total = summary?.totalMeals ?? 0;
+        final breakfast = summary?.breakfast ?? 0;
+        final lunch = summary?.lunch ?? 0;
+        final dinner = summary?.dinner ?? 0;
+
+        return DashboardCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "TODAY'S MEALS",
-                style: GoogleFonts.inter(
-                  color: AppColors.black.withOpacity(0.8),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.05),
-                  shape: BoxShape.circle,
-                ),
-                child:
-                    const Icon(Icons.restaurant, color: Colors.black, size: 16),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "450",
-                style: GoogleFonts.inter(
-                  color: AppColors.black,
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  height: 1.0,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.accentGreen.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  "+5% vs yesterday",
-                  style: GoogleFonts.inter(
-                    color: AppColors.accentGreen,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "TODAY'S MEALS",
+                    style: GoogleFonts.inter(
+                      color: AppColors.black.withOpacity(0.8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.0,
+                    ),
                   ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.restaurant,
+                        color: Colors.black, size: 16),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    total.toString(),
+                    style: GoogleFonts.inter(
+                      color: AppColors.black,
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      "+5% vs yesterday",
+                      style: GoogleFonts.inter(
+                        color: AppColors.accentGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Progress Bar
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Breakdown",
+                      style: TextStyle(color: AppColors.black, fontSize: 12)),
+                  Text("Total",
+                      style: TextStyle(color: AppColors.black, fontSize: 12)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Row(
+                  children: [
+                    if (total > 0) ...[
+                      Expanded(
+                          flex: (breakfast * 100 ~/ total),
+                          child: Container(height: 8, color: Colors.orange)),
+                      Expanded(
+                          flex: (lunch * 100 ~/ total),
+                          child: Container(height: 8, color: Colors.green)),
+                      Expanded(
+                          flex: (dinner * 100 ~/ total),
+                          child: Container(height: 8, color: Colors.blue)),
+                    ] else
+                      Expanded(
+                          child: Container(
+                              height: 8, color: Colors.grey.shade200)),
+                  ],
                 ),
+              ),
+              const SizedBox(height: 16),
+              // Legend
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  _buildLegendItem(Colors.orange, "Breakfast", "$breakfast"),
+                  _buildLegendItem(Colors.green, "Lunch", "$lunch"),
+                  _buildLegendItem(Colors.blue, "Dinner", "$dinner"),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          // Progress Bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Breakdown",
-                  style: TextStyle(color: AppColors.black, fontSize: 12)),
-              Text("100% Total",
-                  style: TextStyle(color: AppColors.black, fontSize: 12)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: Row(
-              children: [
-                Expanded(
-                    flex: 202,
-                    child: Container(height: 8, color: AppColors.accentGreen)),
-                Expanded(
-                    flex: 180,
-                    child: Container(
-                        height: 8,
-                        color: Color(0xFF1E8E64))), // Darker green/teal
-                Expanded(
-                    flex: 68,
-                    child: Container(
-                        height: 8, color: Color(0xFF2D3734))), // Dark grey
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Legend
-          Wrap(
-            spacing: 16,
-            runSpacing: 8,
-            children: [
-              _buildLegendItem(AppColors.accentGreen, "Veg", "202"),
-              _buildLegendItem(Color(0xFF1E8E64), "Non-Veg", "180"),
-              _buildLegendItem(Color(0xFF555555), "Add-ons", "68"),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frusette_admin_operations_web_dashboard/view/auth/views/login_screen.dart';
+import 'package:frusette_admin_operations_web_dashboard/view/auth/login_screen.dart';
 import '../../core/view_models/navigation_view_model.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:provider/provider.dart';

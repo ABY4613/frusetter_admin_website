@@ -3,7 +3,7 @@ import 'package:frusette_admin_operations_web_dashboard/core/theme/app_theme.dar
 import 'package:frusette_admin_operations_web_dashboard/view/main_layout_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
 import 'package:provider/provider.dart';
-import '../../../../controller/auth_controller.dart';
+import '../../../controller/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

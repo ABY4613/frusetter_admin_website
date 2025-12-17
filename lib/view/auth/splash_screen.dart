@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frusette_admin_operations_web_dashboard/core/theme/app_colors.dart';
-import 'package:frusette_admin_operations_web_dashboard/view/auth/views/login_screen.dart';
+import 'package:frusette_admin_operations_web_dashboard/view/auth/login_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
+import 'package:provider/provider.dart';
+import '../../../controller/auth_controller.dart';
+import '../main_layout_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,28 +17,42 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Simulate initialization process (e.g., checking auth, loading config)
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const LoginScreen(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              const begin = Offset(0.0, 1.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOutQuart;
-              var tween =
-                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              var offsetAnimation = animation.drive(tween);
-              return SlideTransition(position: offsetAnimation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
-      }
-    });
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    // Artificial delay for splash effect
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    final authController = Provider.of<AuthController>(context, listen: false);
+    await authController.checkAuth();
+
+    if (!mounted) return;
+
+    if (authController.isAuthenticated) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainLayoutScreen()),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const LoginScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutQuart;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
+      );
+    }
   }
 
   @override

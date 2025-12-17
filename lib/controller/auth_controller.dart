@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/user_model.dart';
+import '../core/constants/api_constants.dart';
 
 class AuthController with ChangeNotifier {
-  // TODO: Replace with your actual base URL. If running locally on emulator use 10.0.2.2 or your IP.
-  static const String baseUrl = 'https://frusette-backend-ym62.onrender.com';
-
   bool _isLoading = false;
   String? _errorMessage;
   User? _currentUser;
@@ -28,7 +26,7 @@ class AuthController with ChangeNotifier {
     notifyListeners();
 
     try {
-      final url = Uri.parse('$baseUrl/v1/auth/login');
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.authLogin}');
       debugPrint('Logging in to $url with $email');
 
       final response = await http.post(
