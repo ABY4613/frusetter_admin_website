@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frusette_admin_operations_web_dashboard/core/theme/app_theme.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/main_layout_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
+import 'package:provider/provider.dart';
+import '../../../../controller/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -210,22 +212,45 @@ class _LoginScreenState extends State<LoginScreen> {
                                       : () async {
                                           if (_formKey.currentState!
                                               .validate()) {
+                                            final authController =
+                                                Provider.of<AuthController>(
+                                                    context,
+                                                    listen: false);
+
                                             setState(() {
                                               _isLoading = true;
                                             });
 
-                                            // Simulate network delay
-                                            await Future.delayed(
-                                                const Duration(seconds: 2));
+                                            final success =
+                                                await authController.login(
+                                              _emailController.text.trim(),
+                                              _passwordController.text,
+                                            );
 
                                             if (mounted) {
-                                              Navigator.pushReplacement(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const MainLayoutScreen(),
-                                                ),
-                                              );
+                                              setState(() {
+                                                _isLoading = false;
+                                              });
+
+                                              if (success) {
+                                                Navigator.pushReplacement(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const MainLayoutScreen(),
+                                                  ),
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(authController
+                                                            .errorMessage ??
+                                                        'Login failed'),
+                                                    backgroundColor: Colors.red,
+                                                  ),
+                                                );
+                                              }
                                             }
                                           }
                                         },
