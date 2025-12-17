@@ -99,31 +99,28 @@ class DummyData {
       id: 'MP-001',
       name: 'Weight Loss Plan',
       description: 'Low calorie, high protein meals designed for weight loss.',
-      calories: 1200,
-      dietaryPreferences: ['Low Carb', 'High Protein'],
+      durationDays: 30,
+      mealsPerDay: 3,
+      mealTypes: ['breakfast', 'lunch', 'dinner'],
       price: 150.00,
-      imageUrl: 'assets/images/meal1.png', // Dummy path
-      isAvailable: true,
     ),
     MealPlan(
       id: 'MP-002',
       name: 'Vegan Power Plan',
       description: 'Plant-based meals packed with nutrients.',
-      calories: 1800,
-      dietaryPreferences: ['Vegan', 'Dairy Free'],
+      durationDays: 14,
+      mealsPerDay: 2,
+      mealTypes: ['lunch', 'dinner'],
       price: 140.00,
-      imageUrl: 'assets/images/meal2.png', // Dummy path
-      isAvailable: true,
     ),
     MealPlan(
       id: 'MP-003',
       name: 'Keto Kickstart',
       description: 'High fat, low carb meals to get you into ketosis.',
-      calories: 1600,
-      dietaryPreferences: ['Keto', 'Gluten Free'],
+      durationDays: 7,
+      mealsPerDay: 3,
+      mealTypes: ['breakfast', 'lunch', 'dinner'],
       price: 160.00,
-      imageUrl: 'assets/images/meal3.png', // Dummy path
-      isAvailable: false,
     ),
   ];
 

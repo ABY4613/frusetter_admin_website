@@ -21,9 +21,16 @@ class SubscriptionsScreen extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black.withOpacity(0.05), // A minimal shadow if needed, or remove completely.
+                //     blurRadius: 20,
+                //     offset: const Offset(0, 10),
+                //   ),
+                // ],
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white,
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),

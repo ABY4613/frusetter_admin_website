@@ -11,18 +11,20 @@ class SubscriptionFilters extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
         border: Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
             flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   "SEARCH",
@@ -34,19 +36,33 @@ class SubscriptionFilters extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: "Search by customer name, email...",
-                    hintStyle: GoogleFonts.inter(color: Colors.grey),
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    filled: true,
-                    fillColor: Colors.grey.withOpacity(0.05),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(50),
-                      borderSide: BorderSide.none,
+                SizedBox(
+                  height: 48,
+                  child: TextField(
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      hintText: "Search by customer name, email...",
+                      hintStyle: GoogleFonts.inter(color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                    style: GoogleFonts.inter(color: AppColors.black),
                   ),
                 ),
               ],
@@ -57,6 +73,7 @@ class SubscriptionFilters extends StatelessWidget {
             flex: 1,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   "STATUS",
@@ -69,11 +86,11 @@ class SubscriptionFilters extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(50),
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
@@ -95,24 +112,22 @@ class SubscriptionFilters extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const SizedBox(height: 24),
-              TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.filter_list,
-                    color: AppColors.black, size: 20),
-                label: Text(
-                  "More Filters",
-                  style: GoogleFonts.inter(
-                    color: AppColors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+          TextButton.icon(
+            onPressed: () {},
+            icon:
+                const Icon(Icons.filter_list, color: AppColors.black, size: 20),
+            label: Text(
+              "More Filters",
+              style: GoogleFonts.inter(
+                color: AppColors.black,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          )
+            ),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              // Matches the visual alignment better than a separate column
+            ),
+          ),
         ],
       ),
     );

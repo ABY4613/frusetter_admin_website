@@ -11,4 +11,6 @@ class ApiConstants {
   static const String authLogin = '$apiVersion/auth/login';
   // Admin Endpoints
   static const String adminOverviewMeals = '$apiVersion/admin/overview/meals';
+  static const String adminSubscriptions = '$apiVersion/admin/subscriptions';
+  static const String adminPlans = '$apiVersion/admin/plans';
 }

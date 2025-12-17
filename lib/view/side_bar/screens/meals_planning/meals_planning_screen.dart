@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
-import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
 import 'package:provider/provider.dart';
 import '../../../../controller/meals_controller.dart';
-import 'package:frusette_admin_operations_web_dashboard/model/meal_plan.dart';
+import '../../../../model/meal_plan.dart';
 
 class MealsPlanningScreen extends StatefulWidget {
   const MealsPlanningScreen({Key? key}) : super(key: key);
@@ -14,664 +12,302 @@ class MealsPlanningScreen extends StatefulWidget {
 }
 
 class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
-  String _selectedPlanType = 'Standard';
-  String _selectedWeek = 'Oct 24 - Oct 30';
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<MealsController>(context, listen: false).fetchMealsOverview();
+      context.read<MealsController>().fetchPlans();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 900;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(32.0),
+      backgroundColor: Colors.white, // Changed from Dark to White
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(40.0),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 1000),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(isMobile),
+                _buildHeader(),
                 const SizedBox(height: 32),
-                _buildStatsRow(isMobile),
+                _buildFilters(),
                 const SizedBox(height: 32),
-                _buildPlanningTools(isMobile),
-                const SizedBox(height: 24),
-                _buildWeeklySchedule(isMobile),
+                _buildPlanCards(),
               ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildHeader(bool isMobile) {
-    if (isMobile) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Dashboard',
-                    style: GoogleFonts.inter(
-                      color: AppColors.textLight,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(Icons.chevron_right,
-                      size: 16, color: AppColors.textLight),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Meals Planning',
-                    style: GoogleFonts.inter(
-                      color: AppColors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Meals Planning',
-                style: GoogleFonts.inter(
-                  color: AppColors.black,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Organize weekly menus and inventory.',
-                style: GoogleFonts.inter(
-                  color: AppColors.textLight,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Mobile Actions
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.inventory_2_outlined, size: 18),
-                label: Text(
-                  'Inventory',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.grey.shade300),
-                  foregroundColor: AppColors.black,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(
-                  'New Meal',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 0,
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        // Breadcrumbs
+        Row(
           children: [
-            Row(
-              children: [
-                Text(
-                  'Dashboard',
-                  style: GoogleFonts.inter(
-                    color: AppColors.textLight,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.chevron_right, size: 16, color: AppColors.textLight),
-                const SizedBox(width: 8),
-                Text(
-                  'Meals Planning',
-                  style: GoogleFonts.inter(
-                    color: AppColors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+            Text(
+              'Dashboard',
+              style: GoogleFonts.inter(
+                color: const Color(0xFF6B7280), // Grey 500
+                fontSize: 14,
+              ),
             ),
-            const SizedBox(height: 12),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child:
+                  Icon(Icons.chevron_right, size: 16, color: Color(0xFF6B7280)),
+            ),
             Text(
               'Meals Planning',
               style: GoogleFonts.inter(
-                color: AppColors.black,
+                color: Colors.black, // Active text black
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Title and Actions Row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Meals Planning',
+              style: GoogleFonts.inter(
+                color: Colors.black, // Title black
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Organize weekly menus and manage recipe inventory.',
-              style: GoogleFonts.inter(
-                color: AppColors.textLight,
-                fontSize: 16,
-              ),
+            Row(
+              children: [
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const CreatePlanDialog(),
+                    );
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(
+                    'New Plan',
+                    style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8AC53D), // Brand Green
+                    foregroundColor: Colors.black, // Text Black
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        Row(
-          children: [
-            OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.inventory_2_outlined, size: 18),
-              label: Text(
-                'Inventory',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.grey.shade300),
-                foregroundColor: AppColors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.add, size: 18),
-              label: Text(
-                'New Meal',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 0,
-              ),
-            ),
-          ],
+        const SizedBox(height: 8),
+        Text(
+          'Organize weekly menus and manage recipe inventory.',
+          style: GoogleFonts.inter(
+            color: const Color(0xFF6B7280), // Subtitle grey
+            fontSize: 16,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStatsRow(bool isMobile) {
-    return Consumer<MealsController>(
-      builder: (context, controller, child) {
-        if (controller.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+  // State for filters
+  String _selectedSort = 'Recommended';
+  String _selectedDuration = 'All Durations';
+  final List<String> _selectedPreferences = [];
 
-        if (controller.errorMessage != null) {
-          return Center(child: Text('Error: ${controller.errorMessage}'));
-        }
-
-        final summary = controller.overviewData?.summary;
-        if (summary == null) return const SizedBox();
-
-        final cards = [
-          _buildStatCard(
-            title: 'Breakfast',
-            value: '${summary.breakfast}',
-            subtitle: 'Daily Count',
-            icon: Icons.breakfast_dining,
-            color: Colors.orange,
-          ),
-          const SizedBox(width: 24, height: 16),
-          _buildStatCard(
-            title: 'Lunch',
-            value: '${summary.lunch}',
-            subtitle: 'Daily Count',
-            icon: Icons.lunch_dining,
-            color: Colors.green,
-          ),
-          const SizedBox(width: 24, height: 16),
-          _buildStatCard(
-            title: 'Dinner',
-            value: '${summary.dinner}',
-            subtitle: 'Daily Count',
-            icon: Icons.dinner_dining,
-            color: Colors.blue,
-          ),
-          const SizedBox(width: 24, height: 16),
-          _buildStatCard(
-            title: 'Total Meals',
-            value: '${summary.totalMeals}',
-            subtitle: 'Summary',
-            icon: Icons.restaurant,
-            color: AppColors.primaryColor,
-          ),
-        ];
-
-        if (isMobile) {
-          return Column(children: cards);
-        }
-
-        return Row(
-          children: [
-            Expanded(child: cards[0]),
-            const SizedBox(width: 24),
-            Expanded(child: cards[2]), // spacer
-            const SizedBox(width: 24),
-            Expanded(child: cards[4]),
-            const SizedBox(width: 24),
-            Expanded(child: cards[6]),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    bool isWarning = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  color: isWarning ? AppColors.accentOrange : AppColors.black,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: GoogleFonts.inter(
-                  color: AppColors.textLight,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: GoogleFonts.inter(
-                  color: isWarning ? AppColors.accentOrange : Colors.green,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlanningTools(bool isMobile) {
-    if (isMobile) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildPlanTab('Standard'),
-                  _buildPlanTab('Keto'),
-                  _buildPlanTab('Vegan'),
-                  _buildPlanTab('Paleo'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Dropdown
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: _buildWeekDropdown(isMobile: true),
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildFilters() {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
       children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Row(
-            children: [
-              _buildPlanTab('Standard'),
-              _buildPlanTab('Keto'),
-              _buildPlanTab('Vegan'),
-              _buildPlanTab('Paleo'),
-            ],
-          ),
+        _buildFilterDropdown(
+          label:
+              _selectedSort == 'Recommended' ? 'Sort by Price' : _selectedSort,
+          options: ['Recommended', 'Low to High', 'High to Low'],
+          selected: _selectedSort,
+          onSelected: (val) {
+            setState(() {
+              _selectedSort = val;
+              // Add sorting logic here if needed
+            });
+          },
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: _buildWeekDropdown(isMobile: false),
+        _buildFilterDropdown(
+          label: _selectedDuration == 'All Durations'
+              ? 'Sort by Duration'
+              : _selectedDuration,
+          options: ['All Durations', '1 Week', '2 Weeks', '4 Weeks'],
+          selected: _selectedDuration,
+          onSelected: (val) {
+            setState(() {
+              _selectedDuration = val;
+              // Add duration filtering logic here
+            });
+          },
+        ),
+        _buildMultiSelectDropdown(
+          label: 'Dietary Preferences',
+          options: [
+            'Vegetarian',
+            'Vegan',
+            'Keto',
+            'Paleo',
+            'Gluten Free',
+            'Dairy Free'
+          ],
+          selected: _selectedPreferences,
+          onChanged: (val) {
+            setState(() {
+              if (_selectedPreferences.contains(val)) {
+                _selectedPreferences.remove(val);
+              } else {
+                _selectedPreferences.add(val);
+              }
+            });
+          },
         ),
       ],
     );
   }
 
-  Widget _buildWeekDropdown({required bool isMobile}) {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: _selectedWeek,
-        isExpanded: isMobile, // Don't expand in desktop row
-        icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.black),
-        style: GoogleFonts.inter(
-          color: AppColors.black,
-          fontWeight: FontWeight.w600,
+  Widget _buildFilterDropdown({
+    required String label,
+    required List<String> options,
+    required String selected,
+    required Function(String) onSelected,
+  }) {
+    return PopupMenuButton<String>(
+      onSelected: onSelected,
+      itemBuilder: (BuildContext context) {
+        return options.map((String choice) {
+          return PopupMenuItem<String>(
+            value: choice,
+            child: Text(
+              choice,
+              style: GoogleFonts.inter(
+                color: Colors.black,
+                fontWeight:
+                    selected == choice ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          );
+        }).toList();
+      },
+      offset: const Offset(0, 40),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade300),
         ),
-        onChanged: (String? newValue) {
-          setState(() {
-            _selectedWeek = newValue!;
-          });
-        },
-        items: <String>['Oct 17 - Oct 23', 'Oct 24 - Oct 30', 'Oct 31 - Nov 6']
-            .map<DropdownMenuItem<String>>((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                color: Colors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: Colors.grey.shade600,
+              size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMultiSelectDropdown({
+    required String label,
+    required List<String> options,
+    required List<String> selected,
+    required Function(String) onChanged,
+  }) {
+    return PopupMenuButton<String>(
+      // We manually handle interactions, so we might keep the menu open or just toggle
+      // Since standard PopupMenu closes on selection, we'll reopen or just select one by one.
+      // For proper multi-select UX inside a popup, we usually need a custom dialog or keep-alive menu.
+      // For this simplified version, we will toggle and close (standard simple behavior).
+      onSelected: onChanged,
+      itemBuilder: (BuildContext context) {
+        return options.map((String choice) {
+          final isSelected = selected.contains(choice);
+          return PopupMenuItem<String>(
+            value: choice,
             child: Row(
               children: [
-                Icon(Icons.calendar_today,
-                    size: 16, color: AppColors.textLight),
+                Icon(
+                  isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                  color: isSelected
+                      ? const Color(0xFF8AC53D)
+                      : Colors.grey.shade400,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
-                Text(value),
+                Text(
+                  choice,
+                  style: GoogleFonts.inter(
+                    color: Colors.black,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
               ],
             ),
           );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildPlanTab(String label) {
-    final isSelected = _selectedPlanType == label;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedPlanType = label;
-        });
+        }).toList();
       },
+      offset: const Offset(0, 40),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.black : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            color: isSelected ? Colors.white : AppColors.textLight,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWeeklySchedule(bool isMobile) {
-    // Demo: Generate schedule based on available meal plans
-    final days = [
-      {'day': 'Monday', 'date': 'Oct 24'},
-      {'day': 'Tuesday', 'date': 'Oct 25'},
-      {'day': 'Wednesday', 'date': 'Oct 26'},
-    ];
-
-    return Column(
-      children: days.map((dayInfo) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: _buildDayRow(
-            day: dayInfo['day']!,
-            date: dayInfo['date']!,
-            meals: [
-              _MealItem(
-                DummyData.mealPlans[0].name,
-                '${DummyData.mealPlans[0].calories} kcal',
-                'Breakfast',
-                AppColors.accentOrange,
-                DummyData.mealPlans[0],
-              ),
-              _MealItem(
-                DummyData.mealPlans[1].name,
-                '${DummyData.mealPlans[1].calories} kcal',
-                'Lunch',
-                AppColors.primaryColor,
-                DummyData.mealPlans[1],
-              ),
-              _MealItem(
-                DummyData.mealPlans.length > 2
-                    ? DummyData.mealPlans[2].name
-                    : 'Salmon Special',
-                DummyData.mealPlans.length > 2
-                    ? '${DummyData.mealPlans[2].calories} kcal'
-                    : '600 kcal',
-                'Dinner',
-                Colors.blue,
-                DummyData.mealPlans.length > 2 ? DummyData.mealPlans[2] : null,
-              ),
-            ],
-            isMobile: isMobile,
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildDayRow({
-    required String day,
-    required String date,
-    required List<_MealItem> meals,
-    required bool isMobile,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                day,
-                style: GoogleFonts.inter(
-                  color: AppColors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                date,
-                style: GoogleFonts.inter(
-                  color: AppColors.textLight,
-                  fontSize: 16,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.more_horiz),
-                color: AppColors.textLight,
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          if (isMobile)
-            Column(
-              children: meals
-                  .map((meal) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: _buildMealCard(meal),
-                      ))
-                  .toList(),
-            )
-          else
-            Row(
-              children: meals
-                  .map((meal) => Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: _buildMealCard(meal),
-                        ),
-                      ))
-                  .toList(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMealCard(_MealItem meal) {
-    return InkWell(
-      onTap: meal.plan != null ? () => _showMealDetails(meal.plan!) : null,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFAFAFA),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.transparent),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade300),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: meal.color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+            Text(
+              selected.isEmpty ? label : '${selected.length} Selected',
+              style: GoogleFonts.inter(
+                color: Colors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
-              child: Icon(Icons.restaurant, color: meal.color, size: 24),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    meal.type,
-                    style: GoogleFonts.inter(
-                      color: meal.color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    meal.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      color: AppColors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    meal.calories,
-                    style: GoogleFonts.inter(
-                      color: AppColors.textLight,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.filter_list,
+              color: Colors.grey.shade600,
+              size: 18,
             ),
           ],
         ),
@@ -679,114 +315,522 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
     );
   }
 
-  void _showMealDetails(MealPlan plan) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          width: 500,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Meal Details',
-                    style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.black,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: AssetImage(plan.imageUrl),
-                      fit: BoxFit.cover,
-                    )),
-              ),
-              const SizedBox(height: 24),
-              _buildDetailText("Name", plan.name),
-              _buildDetailText("Calories", "${plan.calories}"),
-              _buildDetailText("Price", "\$${plan.price}"),
-              _buildDetailText(
-                  "Dietary Info", plan.dietaryPreferences.join(", ")),
-              const SizedBox(height: 16),
-              Text(
-                "Description",
-                style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textLight),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                plan.description,
-                style: GoogleFonts.inter(fontSize: 14, color: AppColors.black),
-              ),
-              const SizedBox(height: 24),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Close',
-                      style: TextStyle(color: AppColors.textLight)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Widget _buildPlanCards() {
+    return Consumer<MealsController>(
+      builder: (context, controller, _) {
+        if (controller.isLoading) {
+          return const Center(
+              child: CircularProgressIndicator(color: Color(0xFF8AC53D)));
+        }
+
+        if (controller.plans.isEmpty) {
+          return Center(
+            child: Text(
+              'No plans found',
+              style: GoogleFonts.inter(color: Colors.grey, fontSize: 16),
+            ),
+          );
+        }
+
+        // We can sort/filter here using the local state _selectedSort, _selectedDuration, etc if needed.
+        // For now, just showing the API list.
+
+        return Column(
+          children: controller.plans.map((plan) => _buildCard(plan)).toList(),
+        );
+      },
     );
   }
 
-  Widget _buildDetailText(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+  Widget _buildCard(MealPlan plan) {
+    // Generate some display logic since API doesn't have all UI fields
+    final isPopular = plan.price > 6000; // Heuristic example
+    final imageUrl = plan.name.toLowerCase().contains('veg')
+        ? 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=800'
+        : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=800';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white, // Card background white
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200), // Light grey border
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          )
+        ],
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-              width: 100,
-              child: Text(label,
-                  style: GoogleFonts.inter(
-                      color: AppColors.textLight,
-                      fontWeight: FontWeight.w500))),
           Expanded(
-              child: Text(value,
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (isPopular)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8AC53D)
+                          .withOpacity(0.2), // Light Green bg
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'MOST POPULAR',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF65902D), // Darker Green text
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  plan.name,
                   style: GoogleFonts.inter(
-                      color: AppColors.black, fontWeight: FontWeight.w600))),
+                    color: Colors.black,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  plan.description,
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF6B7280), // Description grey
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today_outlined,
+                        color: const Color(0xFF9CA3AF), size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${plan.durationDays} Days',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF4B5563), // Darker grey
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Icon(Icons.restaurant_menu,
+                        color: const Color(0xFF9CA3AF), size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${plan.mealsPerDay} Meals/Day',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF4B5563),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '\$${plan.price.toStringAsFixed(2)}',
+                            style: GoogleFonts.inter(
+                              color: Colors.black,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          // if (plan['billing'] != '')
+                          //   TextSpan(
+                          //     text: ' ${plan['billing']}',
+                          //     style: GoogleFonts.inter(
+                          //       color: const Color(0xFF6B7280),
+                          //       fontSize: 14,
+                          //       fontWeight: FontWeight.normal,
+                          //     ),
+                          //   ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(
+                            0xFF8AC53D), // All connect buttons Green
+                        foregroundColor: Colors.black, // All button text Black
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Edit',
+                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 32),
+          // Image Section
+          Expanded(
+            flex: 2,
+            child: Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6), // Light grey placeholder
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: const Color(0xFFF3F4F6),
+                      child: const Center(
+                        child: Icon(Icons.restaurant,
+                            color: Colors.grey, size: 48),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _MealItem {
-  final String name;
-  final String calories;
-  final String type;
-  final Color color;
-  final MealPlan? plan;
+class CreatePlanDialog extends StatefulWidget {
+  const CreatePlanDialog({Key? key}) : super(key: key);
 
-  _MealItem(this.name, this.calories, this.type, this.color, [this.plan]);
+  @override
+  State<CreatePlanDialog> createState() => _CreatePlanDialogState();
+}
+
+class _CreatePlanDialogState extends State<CreatePlanDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _durationController = TextEditingController();
+  final _mealsPerDayController = TextEditingController();
+  final _priceController = TextEditingController();
+
+  // Available meal types
+  final List<String> _availableMealTypes = [
+    'breakfast',
+    'lunch',
+    'dinner',
+    'snack'
+  ];
+  final List<String> _selectedMealTypes = [];
+
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _durationController.dispose();
+    _mealsPerDayController.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedMealTypes.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select at least one meal type')),
+        );
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      final plan = MealPlan(
+        name: _nameController.text,
+        description: _descriptionController.text,
+        durationDays: int.parse(_durationController.text),
+        mealsPerDay: int.parse(_mealsPerDayController.text),
+        mealTypes: _selectedMealTypes,
+        price: double.parse(_priceController.text),
+      );
+
+      final success = await context.read<MealsController>().createPlan(plan);
+
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+
+        if (success) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Plan created successfully'),
+              backgroundColor: Color(0xFF8AC53D),
+            ),
+          );
+        } else {
+          final error = context.read<MealsController>().errorMessage ??
+              'Failed to create plan';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: Colors.white,
+      child: Container(
+        // Constrain width for desktop
+        width: 500,
+        padding: const EdgeInsets.all(32),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Create New Plan',
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Name
+                _buildLabel('Plan Name'),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: _inputDecoration('e.g. Premium Monthly'),
+                  validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Description
+                _buildLabel('Description'),
+                TextFormField(
+                  controller: _descriptionController,
+                  maxLines: 3,
+                  decoration: _inputDecoration('Describe the plan details...'),
+                  validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildLabel('Duration (Days)'),
+                          TextFormField(
+                            controller: _durationController,
+                            keyboardType: TextInputType.number,
+                            decoration: _inputDecoration('e.g. 30'),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Required';
+                              if (int.tryParse(v) == null)
+                                return 'Invalid number';
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildLabel('Meals Per Day'),
+                          TextFormField(
+                            controller: _mealsPerDayController,
+                            keyboardType: TextInputType.number,
+                            decoration: _inputDecoration('e.g. 3'),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Required';
+                              if (int.tryParse(v) == null)
+                                return 'Invalid number';
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Price
+                _buildLabel('Price'),
+                TextFormField(
+                  controller: _priceController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: _inputDecoration('e.g. 7500'),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Required';
+                    if (double.tryParse(v) == null) return 'Invalid price';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Meal Types
+                _buildLabel('Meal Types'),
+                Wrap(
+                  spacing: 8,
+                  children: _availableMealTypes.map((type) {
+                    final isSelected = _selectedMealTypes.contains(type);
+                    return FilterChip(
+                      label: Text(type),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedMealTypes.add(type);
+                          } else {
+                            _selectedMealTypes.remove(type);
+                          }
+                        });
+                      },
+                      selectedColor: const Color(0xFF8AC53D).withOpacity(0.2),
+                      checkmarkColor: const Color(0xFF65902D),
+                      labelStyle: GoogleFonts.inter(
+                        color:
+                            isSelected ? const Color(0xFF65902D) : Colors.black,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                      backgroundColor: Colors.grey.shade100,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      side: BorderSide.none,
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8AC53D),
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.black),
+                          )
+                        : Text(
+                            'Create Plan',
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        text,
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF8AC53D)),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
 }

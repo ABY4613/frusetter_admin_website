@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'add_subscription_dialog.dart';
 
 class SubscriptionHeader extends StatelessWidget {
   const SubscriptionHeader({Key? key}) : super(key: key);
@@ -32,7 +33,12 @@ class SubscriptionHeader extends StatelessWidget {
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => const AddSubscriptionDialog(),
+            );
+          },
           icon: const Icon(Icons.add, color: AppColors.black, size: 20),
           label: Text(
             "Add Subscription",
