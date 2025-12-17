@@ -1,17 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../../../controller/subscription_controller.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import 'widgets/subscription_header.dart';
 import 'widgets/subscription_filters.dart';
 import 'widgets/subscription_table.dart';
 
-class SubscriptionsScreen extends StatelessWidget {
+class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
+}
+
+class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch subscriptions when screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SubscriptionController>().fetchSubscriptions();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          AppColors.white, // Keeping consistent with dashboard background
+      backgroundColor: AppColors.white,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -21,13 +36,6 @@ class SubscriptionsScreen extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                // boxShadow: [
-                //   BoxShadow(
-                //     color: Colors.black.withOpacity(0.05), // A minimal shadow if needed, or remove completely.
-                //     blurRadius: 20,
-                //     offset: const Offset(0, 10),
-                //   ),
-                // ],
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -36,10 +44,10 @@ class SubscriptionsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Column(
+              child: const Column(
                 children: [
-                  const SubscriptionFilters(),
-                  const SubscriptionTable(),
+                  SubscriptionFilters(),
+                  SubscriptionTable(),
                 ],
               ),
             ),

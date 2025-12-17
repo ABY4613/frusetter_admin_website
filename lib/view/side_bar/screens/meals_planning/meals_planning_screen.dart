@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../controller/meals_controller.dart';
@@ -319,8 +320,7 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
     return Consumer<MealsController>(
       builder: (context, controller, _) {
         if (controller.isLoading) {
-          return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF8AC53D)));
+          return const Center(child: FrusetteLoader());
         }
 
         if (controller.plans.isEmpty) {
@@ -332,11 +332,49 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
           );
         }
 
-        // We can sort/filter here using the local state _selectedSort, _selectedDuration, etc if needed.
-        // For now, just showing the API list.
+        var displayedPlans = List<MealPlan>.from(controller.plans);
+
+        // 1. Filter by Duration
+        if (_selectedDuration != 'All Durations') {
+          displayedPlans = displayedPlans.where((plan) {
+            if (_selectedDuration == '1 Week') return plan.durationDays == 7;
+            if (_selectedDuration == '2 Weeks') return plan.durationDays == 14;
+            if (_selectedDuration == '4 Weeks')
+              return plan.durationDays >= 28 && plan.durationDays <= 31;
+            return true;
+          }).toList();
+        }
+
+        // 2. Filter by Dietary Preferences (Search in Name/Description as they are not separate fields yet)
+        if (_selectedPreferences.isNotEmpty) {
+          displayedPlans = displayedPlans.where((plan) {
+            // Check if ANY of the selected preferences are found in name/desc
+            final searchText = '${plan.name} ${plan.description}'.toLowerCase();
+            for (final pref in _selectedPreferences) {
+              if (searchText.contains(pref.toLowerCase())) return true;
+            }
+            return false;
+          }).toList();
+        }
+
+        // 3. Sort
+        if (_selectedSort == 'Low to High') {
+          displayedPlans.sort((a, b) => a.price.compareTo(b.price));
+        } else if (_selectedSort == 'High to Low') {
+          displayedPlans.sort((a, b) => b.price.compareTo(a.price));
+        }
+
+        if (displayedPlans.isEmpty) {
+          return Center(
+            child: Text(
+              'No plans match your filters.',
+              style: GoogleFonts.inter(color: Colors.grey, fontSize: 16),
+            ),
+          );
+        }
 
         return Column(
-          children: controller.plans.map((plan) => _buildCard(plan)).toList(),
+          children: displayedPlans.map((plan) => _buildCard(plan)).toList(),
         );
       },
     );
@@ -465,27 +503,61 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                         ],
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                            0xFF8AC53D), // All connect buttons Green
-                        foregroundColor: Colors.black, // All button text Black
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
+                    if (plan.id != null)
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Colors.grey),
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            showDialog(
+                              context: context,
+                              builder: (context) =>
+                                  CreatePlanDialog(editPlan: plan),
+                            );
+                          } else if (value == 'delete') {
+                            _confirmDelete(plan);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit,
+                                    color: Colors.black, size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Edit',
+                                  style: GoogleFonts.inter(color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete,
+                                    color: Colors.red, size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Delete',
+                                  style: GoogleFonts.inter(color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Edit',
-                        style: GoogleFonts.inter(
-                            fontWeight: FontWeight.w600, fontSize: 14),
-                      ),
-                    ),
                   ],
                 ),
+                // if (plan.id != null)
+                //   Row(
+                //     mainAxisAlignment: MainAxisAlignment.end,
+                //     children: [
+                //       // Removed bottom row menu
+                //     ],
+                //   ),
               ],
             ),
           ),
@@ -521,10 +593,54 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
       ),
     );
   }
+
+  void _confirmDelete(MealPlan plan) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete Plan',
+            style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+        content: Text(
+          'Are you sure you want to delete "${plan.name}"? This action cannot be undone.',
+          style: GoogleFonts.inter(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop(); // Close dialog
+              if (plan.id != null) {
+                final success =
+                    await context.read<MealsController>().deletePlan(plan.id!);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success
+                          ? 'Plan deleted successfully'
+                          : 'Failed to delete plan'),
+                      backgroundColor:
+                          success ? const Color(0xFF8AC53D) : Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text('Delete',
+                style: GoogleFonts.inter(
+                    color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class CreatePlanDialog extends StatefulWidget {
-  const CreatePlanDialog({Key? key}) : super(key: key);
+  final MealPlan? editPlan;
+  const CreatePlanDialog({Key? key, this.editPlan}) : super(key: key);
 
   @override
   State<CreatePlanDialog> createState() => _CreatePlanDialogState();
@@ -548,6 +664,19 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
   final List<String> _selectedMealTypes = [];
 
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.editPlan != null) {
+      _nameController.text = widget.editPlan!.name;
+      _descriptionController.text = widget.editPlan!.description;
+      _durationController.text = widget.editPlan!.durationDays.toString();
+      _mealsPerDayController.text = widget.editPlan!.mealsPerDay.toString();
+      _priceController.text = widget.editPlan!.price.toString();
+      _selectedMealTypes.addAll(widget.editPlan!.mealTypes);
+    }
+  }
 
   @override
   void dispose() {
@@ -581,7 +710,14 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
         price: double.parse(_priceController.text),
       );
 
-      final success = await context.read<MealsController>().createPlan(plan);
+      bool success;
+      if (widget.editPlan != null && widget.editPlan!.id != null) {
+        success = await context
+            .read<MealsController>()
+            .updatePlan(widget.editPlan!.id!, plan);
+      } else {
+        success = await context.read<MealsController>().createPlan(plan);
+      }
 
       if (mounted) {
         setState(() {
@@ -591,14 +727,18 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
         if (success) {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Plan created successfully'),
-              backgroundColor: Color(0xFF8AC53D),
+            SnackBar(
+              content: Text(widget.editPlan != null
+                  ? 'Plan updated successfully'
+                  : 'Plan created successfully'),
+              backgroundColor: const Color(0xFF8AC53D),
             ),
           );
         } else {
           final error = context.read<MealsController>().errorMessage ??
-              'Failed to create plan';
+              (widget.editPlan != null
+                  ? 'Failed to update plan'
+                  : 'Failed to create plan');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(error),
@@ -630,7 +770,7 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Create New Plan',
+                      widget.editPlan != null ? 'Edit Plan' : 'Create New Plan',
                       style: GoogleFonts.inter(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -782,7 +922,9 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                                 strokeWidth: 2, color: Colors.black),
                           )
                         : Text(
-                            'Create Plan',
+                            widget.editPlan != null
+                                ? 'Update Plan'
+                                : 'Create Plan',
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

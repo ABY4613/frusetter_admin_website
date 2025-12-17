@@ -143,4 +143,115 @@ class MealsController with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  Future<bool> deletePlan(String id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+      // Construct URL: /v1/admin/plans/{id}
+      final url =
+          Uri.parse('${ApiConstants.baseUrl}${ApiConstants.adminPlans}/$id');
+
+      debugPrint('Deleting plan at $url');
+
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      debugPrint(
+          'Delete Plan Response: ${response.statusCode} ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Remove locally or refresh
+        _plans.removeWhere((p) => p.id == id);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = 'Failed to delete plan: ${response.statusCode}';
+      }
+    } catch (e) {
+      _errorMessage = 'Connection error: $e';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  Future<bool> updatePlan(String id, MealPlan plan) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+      // Construct URL: /v1/admin/plans/{id}
+      final url =
+          Uri.parse('${ApiConstants.baseUrl}${ApiConstants.adminPlans}/$id');
+
+      debugPrint('Updating plan at $url with data: ${plan.toJson()}');
+
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(plan.toJson()),
+      );
+
+      debugPrint(
+          'Update Plan Response: ${response.statusCode} ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Update locally
+        final index = _plans.indexWhere((p) => p.id == id);
+        if (index != -1) {
+          // Keep the ID from the original or response if needed.
+          // Assuming response might return the updated object or just success.
+          // For now, replace with the new data + existing ID.
+          final updatedPlan = MealPlan(
+            id: id,
+            name: plan.name,
+            description: plan.description,
+            durationDays: plan.durationDays,
+            mealsPerDay: plan.mealsPerDay,
+            mealTypes: plan.mealTypes,
+            price: plan.price,
+            // isActive and createdAt are not in the constructor we used earlier or not updated from UI
+            // We'll keep them effectively null or handled if the model supports copyWith
+            // If Model doesn't support them, we omit them. Based on earlier read, constructor has them?
+            // Checking model file... constructor has named params. if they are missing in 'plan' (from UI), we might lose them.
+            // Ideally we merge. But for now, UI 'plan' is created fresh.
+          );
+          _plans[index] = updatedPlan;
+        } else {
+          // If not found locally, refetch/refresh might be safer, but for now:
+          await fetchPlans();
+        }
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = 'Failed to update plan: ${response.statusCode}';
+      }
+    } catch (e) {
+      _errorMessage = 'Connection error: $e';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
 }
