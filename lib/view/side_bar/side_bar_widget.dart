@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/auth/login_screen.dart';
+import 'package:frusette_admin_operations_web_dashboard/controller/auth_controller.dart';
 import '../../core/view_models/navigation_view_model.dart';
 import '../../core/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class SideBarWidget extends StatelessWidget {
   const SideBarWidget({Key? key}) : super(key: key);
@@ -182,101 +184,137 @@ class SideBarWidget extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
-    return Column(
-      children: [
-        Divider(color: AppColors.black.withOpacity(0.2), height: 1),
-        Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Color(0xFFE2C499), // Approximate avatar color
-                radius: 18,
-                child: Icon(Icons.person,
-                    color: Colors.white, size: 20), // Placeholder if no image
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Admin User',
+    return Consumer<AuthController>(
+      builder: (context, authController, child) {
+        final user = authController.currentUser;
+        final loginTime = authController.loginTime;
+
+        // Format login time
+        String loginTimeText = 'Not logged in';
+        if (loginTime != null) {
+          loginTimeText = 'Login: ${DateFormat('hh:mm a').format(loginTime)}';
+        }
+
+        return Column(
+          children: [
+            Divider(color: AppColors.black.withOpacity(0.2), height: 1),
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor:
+                        Color(0xFFE2C499), // Approximate avatar color
+                    radius: 18,
+                    child: Text(
+                      user?.fullName.isNotEmpty == true
+                          ? user!.fullName[0].toUpperCase()
+                          : 'A',
                       style: GoogleFonts.inter(
-                        color: AppColors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                    Text(
-                      'View Profile',
-                      style: GoogleFonts.inter(
-                        color: AppColors.black,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      backgroundColor: AppColors.white,
-                      title: Text(
-                        'Logout',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.black,
-                        ),
-                      ),
-                      content: Text(
-                        'Are you sure you want to logout?',
-                        style: GoogleFonts.inter(
-                          color: AppColors.black,
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            'Cancel',
-                            style: GoogleFonts.inter(
-                              color: AppColors.textLight,
-                            ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.fullName ?? 'Admin User',
+                          style: GoogleFonts.inter(
+                            color: AppColors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context); // Close dialog
-                            // Navigate to Login Screen
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              ),
-                              (route) => false,
-                            );
-                          },
-                          child: Text(
-                            'Logout',
-                            style: GoogleFonts.inter(
-                              color: AppColors.accentRed,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        Text(
+                          user?.email ?? 'No email',
+                          style: GoogleFonts.inter(
+                            color: AppColors.black.withOpacity(0.7),
+                            fontSize: 10,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          loginTimeText,
+                          style: GoogleFonts.inter(
+                            color: AppColors.accentGreen,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
-                icon: Icon(Icons.logout, color: AppColors.black, size: 20),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: AppColors.white,
+                          title: Text(
+                            'Logout',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.black,
+                            ),
+                          ),
+                          content: Text(
+                            'Are you sure you want to logout?',
+                            style: GoogleFonts.inter(
+                              color: AppColors.black,
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(context); // Close dialog
+                                await authController.logout();
+                                // Navigate to Login Screen
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              },
+                              child: Text(
+                                'Logout',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.accentRed,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.logout, color: AppColors.black, size: 20),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

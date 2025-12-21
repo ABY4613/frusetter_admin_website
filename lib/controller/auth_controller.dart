@@ -10,11 +10,13 @@ class AuthController with ChangeNotifier {
   String? _errorMessage;
   User? _currentUser;
   String? _accessToken;
+  DateTime? _loginTime;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _accessToken != null;
+  DateTime? get loginTime => _loginTime;
 
   AuthController() {
     checkAuth();
@@ -48,12 +50,14 @@ class AuthController with ChangeNotifier {
         if (authResponse.success && authResponse.data != null) {
           _accessToken = authResponse.data!.accessToken;
           _currentUser = authResponse.data!.user;
+          _loginTime = DateTime.now();
 
-          // Save token
+          // Save token and login time
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('access_token', _accessToken!);
           await prefs.setString(
               'user_data', jsonEncode(_currentUser!.toJson()));
+          await prefs.setString('login_time', _loginTime!.toIso8601String());
 
           _isLoading = false;
           notifyListeners();
@@ -82,9 +86,11 @@ class AuthController with ChangeNotifier {
   Future<void> logout() async {
     _accessToken = null;
     _currentUser = null;
+    _loginTime = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
     await prefs.remove('user_data');
+    await prefs.remove('login_time');
     notifyListeners();
   }
 
@@ -100,6 +106,13 @@ class AuthController with ChangeNotifier {
           // In case stored data is corrupted
           _accessToken = null;
           await prefs.clear();
+        }
+      }
+      if (prefs.containsKey('login_time')) {
+        try {
+          _loginTime = DateTime.parse(prefs.getString('login_time')!);
+        } catch (e) {
+          _loginTime = null;
         }
       }
       notifyListeners();
