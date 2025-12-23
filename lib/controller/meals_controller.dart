@@ -228,11 +228,9 @@ class MealsController with ChangeNotifier {
             mealsPerDay: plan.mealsPerDay,
             mealTypes: plan.mealTypes,
             price: plan.price,
-            // isActive and createdAt are not in the constructor we used earlier or not updated from UI
-            // We'll keep them effectively null or handled if the model supports copyWith
-            // If Model doesn't support them, we omit them. Based on earlier read, constructor has them?
-            // Checking model file... constructor has named params. if they are missing in 'plan' (from UI), we might lose them.
-            // Ideally we merge. But for now, UI 'plan' is created fresh.
+            weeklyMenu: plan.weeklyMenu,
+            isActive: plan.isActive,
+            createdAt: plan.createdAt,
           );
           _plans[index] = updatedPlan;
         } else {

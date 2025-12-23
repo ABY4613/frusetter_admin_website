@@ -381,216 +381,459 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
   }
 
   Widget _buildCard(MealPlan plan) {
-    // Generate some display logic since API doesn't have all UI fields
-    final isPopular = plan.price > 6000; // Heuristic example
+    // Generate some display logic
+    final isPopular = plan.price > 6000;
     final imageUrl = plan.name.toLowerCase().contains('veg')
         ? 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=800'
         : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=800';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white, // Card background white
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200), // Light grey border
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: plan.isActive
+              ? const Color(0xFF8AC53D).withOpacity(0.3)
+              : Colors.grey.shade200,
+          width: plan.isActive ? 2 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
+            color: Colors.black.withOpacity(0.06),
+            offset: const Offset(0, 8),
+            blurRadius: 24,
           )
         ],
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Top badges row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+            child: Row(
               children: [
+                // Active/Inactive Status Badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: plan.isActive
+                        ? LinearGradient(
+                            colors: [
+                              const Color(0xFF8AC53D),
+                              const Color(0xFF6A9F2E),
+                            ],
+                          )
+                        : null,
+                    color: plan.isActive ? null : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        plan.isActive
+                            ? Icons.check_circle
+                            : Icons.pause_circle_filled,
+                        color:
+                            plan.isActive ? Colors.white : Colors.grey.shade600,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        plan.isActive ? 'ACTIVE' : 'INACTIVE',
+                        style: GoogleFonts.inter(
+                          color: plan.isActive
+                              ? Colors.white
+                              : Colors.grey.shade700,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Popular Badge
                 if (isPopular)
                   Container(
-                    margin: const EdgeInsets.only(bottom: 12),
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8AC53D)
-                          .withOpacity(0.2), // Light Green bg
-                      borderRadius: BorderRadius.circular(4),
+                      color: const Color(0xFFFFAB40).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      'MOST POPULAR',
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF65902D), // Darker Green text
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFFF8F00),
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'POPULAR',
+                          style: GoogleFonts.inter(
+                            color: const Color(0xFFFF8F00),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                const SizedBox(height: 4),
-                Text(
-                  plan.name,
-                  style: GoogleFonts.inter(
-                    color: Colors.black,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                const Spacer(),
+                // Created date
+                if (plan.createdAt != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          color: Colors.grey.shade500,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Created ${plan.formattedCreatedAt}',
+                          style: GoogleFonts.inter(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  plan.description,
-                  style: GoogleFonts.inter(
-                    color: const Color(0xFF6B7280), // Description grey
-                    fontSize: 14,
-                    height: 1.5,
+                // Menu Button
+                if (plan.id != null)
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, color: Colors.grey.shade600),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        showDialog(
+                          context: context,
+                          builder: (context) =>
+                              CreatePlanDialog(editPlan: plan),
+                        );
+                      } else if (value == 'delete') {
+                        _confirmDelete(plan);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit_outlined,
+                                color: Colors.black87, size: 20),
+                            const SizedBox(width: 12),
+                            Text('Edit Plan',
+                                style:
+                                    GoogleFonts.inter(color: Colors.black87)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_outline,
+                                color: Colors.red, size: 20),
+                            const SizedBox(width: 12),
+                            Text('Delete',
+                                style: GoogleFonts.inter(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today_outlined,
-                        color: const Color(0xFF9CA3AF), size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${plan.durationDays} Days',
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF4B5563), // Darker grey
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Icon(Icons.restaurant_menu,
-                        color: const Color(0xFF9CA3AF), size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${plan.mealsPerDay} Meals/Day',
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF4B5563),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '\$${plan.price.toStringAsFixed(2)}',
-                            style: GoogleFonts.inter(
-                              color: Colors.black,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          // if (plan['billing'] != '')
-                          //   TextSpan(
-                          //     text: ' ${plan['billing']}',
-                          //     style: GoogleFonts.inter(
-                          //       color: const Color(0xFF6B7280),
-                          //       fontSize: 14,
-                          //       fontWeight: FontWeight.normal,
-                          //     ),
-                          //   ),
-                        ],
-                      ),
-                    ),
-                    if (plan.id != null)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.grey),
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            showDialog(
-                              context: context,
-                              builder: (context) =>
-                                  CreatePlanDialog(editPlan: plan),
-                            );
-                          } else if (value == 'delete') {
-                            _confirmDelete(plan);
-                          }
-                        },
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry<String>>[
-                          PopupMenuItem<String>(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                const Icon(Icons.edit,
-                                    color: Colors.black, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Edit',
-                                  style: GoogleFonts.inter(color: Colors.black),
-                                ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                const Icon(Icons.delete,
-                                    color: Colors.red, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Delete',
-                                  style: GoogleFonts.inter(color: Colors.red),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-                // if (plan.id != null)
-                //   Row(
-                //     mainAxisAlignment: MainAxisAlignment.end,
-                //     children: [
-                //       // Removed bottom row menu
-                //     ],
-                //   ),
               ],
             ),
           ),
-          const SizedBox(width: 32),
-          // Image Section
-          Expanded(
-            flex: 2,
-            child: Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6), // Light grey placeholder
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: const Color(0xFFF3F4F6),
-                      child: const Center(
-                        child: Icon(Icons.restaurant,
-                            color: Colors.grey, size: 48),
+
+          // Main content
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left content
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Plan name
+                      Text(
+                        plan.name,
+                        style: GoogleFonts.inter(
+                          color: Colors.black,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 12),
+                      // Description
+                      Text(
+                        plan.description,
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF6B7280),
+                          fontSize: 15,
+                          height: 1.6,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Stats Row
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 12,
+                        children: [
+                          _buildStatChip(
+                            Icons.calendar_today_outlined,
+                            '${plan.durationDays} Days',
+                            const Color(0xFF3B82F6),
+                          ),
+                          _buildStatChip(
+                            Icons.restaurant_menu,
+                            '${plan.mealsPerDay} Meals/Day',
+                            const Color(0xFF8B5CF6),
+                          ),
+                          if (plan.weeklyMenu != null)
+                            _buildStatChip(
+                              Icons.calendar_view_week,
+                              '${plan.configuredDaysCount}/7 Days Menu',
+                              const Color(0xFF10B981),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Meal Types
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: plan.mealTypes.map((type) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF8AC53D).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFF8AC53D).withOpacity(0.3),
+                              ),
+                            ),
+                            child: Text(
+                              type[0].toUpperCase() + type.substring(1),
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF65902D),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Price
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '₹',
+                            style: GoogleFonts.inter(
+                              color: Colors.black87,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            plan.price.toStringAsFixed(0),
+                            style: GoogleFonts.inter(
+                              color: Colors.black,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '/ ${plan.durationDays} days',
+                              style: GoogleFonts.inter(
+                                color: Colors.grey.shade500,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 32),
+                // Image Section with weekly menu preview
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: const Color(0xFFF3F4F6),
+                                child: const Center(
+                                  child: Icon(Icons.restaurant,
+                                      color: Colors.grey, size: 48),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      // Weekly menu mini preview
+                      if (plan.weeklyMenu != null &&
+                          plan.configuredDaysCount > 0)
+                        Container(
+                          margin: const EdgeInsets.only(top: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.calendar_view_week,
+                                    size: 16,
+                                    color: const Color(0xFF65902D),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Weekly Menu',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _buildWeeklyMenuPreview(plan.weeklyMenu!),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatChip(IconData icon, String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: GoogleFonts.inter(
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyMenuPreview(WeeklyMenu menu) {
+    final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final dayNames = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday'
+    ];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(7, (index) {
+        final dayMeals = menu.getDay(dayNames[index]);
+        final hasContent = dayMeals != null &&
+            ((dayMeals.breakfast != null &&
+                    dayMeals.breakfast!.name.isNotEmpty) ||
+                (dayMeals.lunch != null && dayMeals.lunch!.name.isNotEmpty) ||
+                (dayMeals.dinner != null && dayMeals.dinner!.name.isNotEmpty));
+
+        return Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: hasContent ? const Color(0xFF8AC53D) : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Center(
+            child: Text(
+              days[index],
+              style: GoogleFonts.inter(
+                color: hasContent ? Colors.white : Colors.grey.shade500,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -663,11 +906,33 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
   ];
   final List<String> _selectedMealTypes = [];
 
+  // Weekly menu state
+  final List<String> _weekDays = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday'
+  ];
+  Map<String, Map<String, Map<String, String>>> _weeklyMenuData = {};
+  String? _expandedDay;
+
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
+    // Initialize weekly menu data structure
+    for (var day in _weekDays) {
+      _weeklyMenuData[day] = {
+        'breakfast': {'name': '', 'description': ''},
+        'lunch': {'name': '', 'description': ''},
+        'dinner': {'name': '', 'description': ''},
+      };
+    }
+
     if (widget.editPlan != null) {
       _nameController.text = widget.editPlan!.name;
       _descriptionController.text = widget.editPlan!.description;
@@ -675,7 +940,81 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
       _mealsPerDayController.text = widget.editPlan!.mealsPerDay.toString();
       _priceController.text = widget.editPlan!.price.toString();
       _selectedMealTypes.addAll(widget.editPlan!.mealTypes);
+
+      // Load existing weekly menu if available
+      if (widget.editPlan!.weeklyMenu != null) {
+        final wm = widget.editPlan!.weeklyMenu!;
+        _loadDayMeals('monday', wm.monday);
+        _loadDayMeals('tuesday', wm.tuesday);
+        _loadDayMeals('wednesday', wm.wednesday);
+        _loadDayMeals('thursday', wm.thursday);
+        _loadDayMeals('friday', wm.friday);
+        _loadDayMeals('saturday', wm.saturday);
+        _loadDayMeals('sunday', wm.sunday);
+      }
     }
+  }
+
+  void _loadDayMeals(String day, DayMeals? dayMeals) {
+    if (dayMeals == null) return;
+    if (dayMeals.breakfast != null) {
+      _weeklyMenuData[day]!['breakfast']!['name'] = dayMeals.breakfast!.name;
+      _weeklyMenuData[day]!['breakfast']!['description'] =
+          dayMeals.breakfast!.description;
+    }
+    if (dayMeals.lunch != null) {
+      _weeklyMenuData[day]!['lunch']!['name'] = dayMeals.lunch!.name;
+      _weeklyMenuData[day]!['lunch']!['description'] =
+          dayMeals.lunch!.description;
+    }
+    if (dayMeals.dinner != null) {
+      _weeklyMenuData[day]!['dinner']!['name'] = dayMeals.dinner!.name;
+      _weeklyMenuData[day]!['dinner']!['description'] =
+          dayMeals.dinner!.description;
+    }
+  }
+
+  WeeklyMenu _buildWeeklyMenu() {
+    DayMeals? buildDayMeals(String day) {
+      final dayData = _weeklyMenuData[day]!;
+      final hasData = dayData.values.any((meal) =>
+          meal['name']!.isNotEmpty || meal['description']!.isNotEmpty);
+      if (!hasData) return null;
+
+      return DayMeals(
+        breakfast: dayData['breakfast']!['name']!.isNotEmpty ||
+                dayData['breakfast']!['description']!.isNotEmpty
+            ? MealItem(
+                name: dayData['breakfast']!['name']!,
+                description: dayData['breakfast']!['description']!,
+              )
+            : null,
+        lunch: dayData['lunch']!['name']!.isNotEmpty ||
+                dayData['lunch']!['description']!.isNotEmpty
+            ? MealItem(
+                name: dayData['lunch']!['name']!,
+                description: dayData['lunch']!['description']!,
+              )
+            : null,
+        dinner: dayData['dinner']!['name']!.isNotEmpty ||
+                dayData['dinner']!['description']!.isNotEmpty
+            ? MealItem(
+                name: dayData['dinner']!['name']!,
+                description: dayData['dinner']!['description']!,
+              )
+            : null,
+      );
+    }
+
+    return WeeklyMenu(
+      monday: buildDayMeals('monday'),
+      tuesday: buildDayMeals('tuesday'),
+      wednesday: buildDayMeals('wednesday'),
+      thursday: buildDayMeals('thursday'),
+      friday: buildDayMeals('friday'),
+      saturday: buildDayMeals('saturday'),
+      sunday: buildDayMeals('sunday'),
+    );
   }
 
   @override
@@ -708,6 +1047,7 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
         mealsPerDay: int.parse(_mealsPerDayController.text),
         mealTypes: _selectedMealTypes,
         price: double.parse(_priceController.text),
+        weeklyMenu: _buildWeeklyMenu(),
       );
 
       bool success;
@@ -753,189 +1093,613 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
       child: Container(
-        // Constrain width for desktop
-        width: 500,
-        padding: const EdgeInsets.all(32),
+        width: 700,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
         child: Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF8AC53D),
+                      const Color(0xFF6A9F2E),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      widget.editPlan != null ? 'Edit Plan' : 'Create New Plan',
-                      style: GoogleFonts.inter(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            widget.editPlan != null
+                                ? Icons.edit_note
+                                : Icons.restaurant_menu,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.editPlan != null
+                                  ? 'Edit Meal Plan'
+                                  : 'Create Meal Plan',
+                              style: GoogleFonts.inter(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Configure plan details and weekly menu',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+              ),
 
-                // Name
-                _buildLabel('Plan Name'),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: _inputDecoration('e.g. Premium Monthly'),
-                  validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
+              // Scrollable Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Basic Info Section
+                      _buildSectionHeader(
+                          'Basic Information', Icons.info_outline),
+                      const SizedBox(height: 16),
 
-                // Description
-                _buildLabel('Description'),
-                TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 3,
-                  decoration: _inputDecoration('Describe the plan details...'),
-                  validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
+                      // Name
+                      _buildLabel('Plan Name'),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: _inputDecoration(
+                            'e.g. Premium Monthly', Icons.label_outline),
+                        validator: (v) =>
+                            v?.isEmpty == true ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 16),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // Description
+                      _buildLabel('Description'),
+                      TextFormField(
+                        controller: _descriptionController,
+                        maxLines: 3,
+                        decoration: _inputDecoration(
+                            'Describe the plan details...',
+                            Icons.description_outlined),
+                        validator: (v) =>
+                            v?.isEmpty == true ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      Row(
                         children: [
-                          _buildLabel('Duration (Days)'),
-                          TextFormField(
-                            controller: _durationController,
-                            keyboardType: TextInputType.number,
-                            decoration: _inputDecoration('e.g. 30'),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              if (int.tryParse(v) == null)
-                                return 'Invalid number';
-                              return null;
-                            },
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildLabel('Duration (Days)'),
+                                TextFormField(
+                                  controller: _durationController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: _inputDecoration(
+                                      'e.g. 30', Icons.calendar_today_outlined),
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty)
+                                      return 'Required';
+                                    if (int.tryParse(v) == null)
+                                      return 'Invalid number';
+                                    return null;
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildLabel('Meals Per Day'),
+                                TextFormField(
+                                  controller: _mealsPerDayController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: _inputDecoration(
+                                      'e.g. 3', Icons.restaurant_outlined),
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty)
+                                      return 'Required';
+                                    if (int.tryParse(v) == null)
+                                      return 'Invalid number';
+                                    return null;
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Price
+                      _buildLabel('Price'),
+                      TextFormField(
+                        controller: _priceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration:
+                            _inputDecoration('e.g. 7500', Icons.attach_money),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Required';
+                          if (double.tryParse(v) == null)
+                            return 'Invalid price';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Meal Types
+                      _buildLabel('Meal Types'),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _availableMealTypes.map((type) {
+                          final isSelected = _selectedMealTypes.contains(type);
+                          return FilterChip(
+                            label:
+                                Text(type[0].toUpperCase() + type.substring(1)),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedMealTypes.add(type);
+                                } else {
+                                  _selectedMealTypes.remove(type);
+                                }
+                              });
+                            },
+                            selectedColor:
+                                const Color(0xFF8AC53D).withOpacity(0.2),
+                            checkmarkColor: const Color(0xFF65902D),
+                            labelStyle: GoogleFonts.inter(
+                              color: isSelected
+                                  ? const Color(0xFF65902D)
+                                  : Colors.black,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                            backgroundColor: Colors.grey.shade100,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            side: BorderSide.none,
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Weekly Menu Section
+                      _buildSectionHeader(
+                          'Weekly Menu', Icons.calendar_view_week),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Configure meals for each day of the week. Click on a day to expand and add meals.',
+                        style: GoogleFonts.inter(
+                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Day Cards
+                      ..._weekDays.map((day) => _buildDayCard(day)).toList(),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Footer with Submit Button
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius:
+                      const BorderRadius.vertical(bottom: Radius.circular(20)),
+                  border: Border(
+                    top: BorderSide(color: Colors.grey.shade200),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildLabel('Meals Per Day'),
-                          TextFormField(
-                            controller: _mealsPerDayController,
-                            keyboardType: TextInputType.number,
-                            decoration: _inputDecoration('e.g. 3'),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              if (int.tryParse(v) == null)
-                                return 'Invalid number';
-                              return null;
-                            },
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: _isSubmitting ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8AC53D),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ],
+                          elevation: 0,
+                        ),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            : Text(
+                                widget.editPlan != null
+                                    ? 'Update Plan'
+                                    : 'Create Plan',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-
-                // Price
-                _buildLabel('Price'),
-                TextFormField(
-                  controller: _priceController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: _inputDecoration('e.g. 7500'),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Required';
-                    if (double.tryParse(v) == null) return 'Invalid price';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Meal Types
-                _buildLabel('Meal Types'),
-                Wrap(
-                  spacing: 8,
-                  children: _availableMealTypes.map((type) {
-                    final isSelected = _selectedMealTypes.contains(type);
-                    return FilterChip(
-                      label: Text(type),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedMealTypes.add(type);
-                          } else {
-                            _selectedMealTypes.remove(type);
-                          }
-                        });
-                      },
-                      selectedColor: const Color(0xFF8AC53D).withOpacity(0.2),
-                      checkmarkColor: const Color(0xFF65902D),
-                      labelStyle: GoogleFonts.inter(
-                        color:
-                            isSelected ? const Color(0xFF65902D) : Colors.black,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                      backgroundColor: Colors.grey.shade100,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      side: BorderSide.none,
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8AC53D),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.black),
-                          )
-                        : Text(
-                            widget.editPlan != null
-                                ? 'Update Plan'
-                                : 'Create Plan',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF8AC53D).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: const Color(0xFF65902D), size: 18),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDayCard(String day) {
+    final isExpanded = _expandedDay == day;
+    final dayData = _weeklyMenuData[day]!;
+    final hasContent = dayData.values.any(
+        (meal) => meal['name']!.isNotEmpty || meal['description']!.isNotEmpty);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isExpanded
+              ? const Color(0xFF8AC53D)
+              : hasContent
+                  ? const Color(0xFF8AC53D).withOpacity(0.5)
+                  : Colors.grey.shade200,
+          width: isExpanded ? 2 : 1,
+        ),
+        boxShadow: isExpanded
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF8AC53D).withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                )
+              ]
+            : null,
+      ),
+      child: Column(
+        children: [
+          // Day Header (always visible)
+          InkWell(
+            onTap: () {
+              setState(() {
+                _expandedDay = isExpanded ? null : day;
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: hasContent
+                            ? [const Color(0xFF8AC53D), const Color(0xFF6A9F2E)]
+                            : [Colors.grey.shade300, Colors.grey.shade400],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        day.substring(0, 2).toUpperCase(),
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          day[0].toUpperCase() + day.substring(1),
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        if (hasContent)
+                          Text(
+                            _getMealSummary(dayData),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (hasContent)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8AC53D).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Configured',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF65902D),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Expanded Content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: _buildDayContent(day),
+            crossFadeState: isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getMealSummary(Map<String, Map<String, String>> dayData) {
+    final meals = <String>[];
+    if (dayData['breakfast']!['name']!.isNotEmpty) meals.add('Breakfast');
+    if (dayData['lunch']!['name']!.isNotEmpty) meals.add('Lunch');
+    if (dayData['dinner']!['name']!.isNotEmpty) meals.add('Dinner');
+    return meals.isEmpty ? 'No meals configured' : meals.join(' • ');
+  }
+
+  Widget _buildDayContent(String day) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        children: [
+          const Divider(),
+          const SizedBox(height: 12),
+          _buildMealInput(day, 'breakfast', Icons.free_breakfast_outlined,
+              const Color(0xFFFFAB40)),
+          const SizedBox(height: 16),
+          _buildMealInput(day, 'lunch', Icons.lunch_dining_outlined,
+              const Color(0xFF42A5F5)),
+          const SizedBox(height: 16),
+          _buildMealInput(day, 'dinner', Icons.dinner_dining_outlined,
+              const Color(0xFF7E57C2)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealInput(
+      String day, String mealType, IconData icon, Color color) {
+    final mealData = _weeklyMenuData[day]![mealType]!;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                mealType[0].toUpperCase() + mealType.substring(1),
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: color.withOpacity(0.9),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            initialValue: mealData['name'],
+            decoration: InputDecoration(
+              hintText: 'Meal name',
+              hintStyle:
+                  GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 13),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: color),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              isDense: true,
+            ),
+            onChanged: (value) {
+              setState(() {
+                _weeklyMenuData[day]![mealType]!['name'] = value;
+              });
+            },
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            initialValue: mealData['description'],
+            decoration: InputDecoration(
+              hintText: 'Description (optional)',
+              hintStyle:
+                  GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 13),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: color),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              isDense: true,
+            ),
+            onChanged: (value) {
+              setState(() {
+                _weeklyMenuData[day]![mealType]!['description'] = value;
+              });
+            },
+          ),
+        ],
       ),
     );
   }
@@ -954,10 +1718,13 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
     );
   }
 
-  InputDecoration _inputDecoration(String hint) {
+  InputDecoration _inputDecoration(String hint, [IconData? icon]) {
     return InputDecoration(
       hintText: hint,
       hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
+      prefixIcon: icon != null
+          ? Icon(icon, color: Colors.grey.shade400, size: 20)
+          : null,
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
