@@ -13,4 +13,5 @@ class ApiConstants {
   static const String adminOverviewMeals = '$apiVersion/admin/overview/meals';
   static const String adminSubscriptions = '$apiVersion/admin/subscriptions';
   static const String adminPlans = '$apiVersion/admin/plans';
+  static const String adminPayments = '$apiVersion/admin/payments';
 }
