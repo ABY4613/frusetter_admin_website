@@ -108,13 +108,10 @@ class AuthController with ChangeNotifier {
           await prefs.clear();
         }
       }
-      if (prefs.containsKey('login_time')) {
-        try {
-          _loginTime = DateTime.parse(prefs.getString('login_time')!);
-        } catch (e) {
-          _loginTime = null;
-        }
-      }
+      // Set login time to current time (session start time)
+      _loginTime = DateTime.now();
+      // Save the updated login time
+      await prefs.setString('login_time', _loginTime!.toIso8601String());
       notifyListeners();
     }
   }
