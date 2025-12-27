@@ -228,7 +228,9 @@ class MealsController with ChangeNotifier {
             mealsPerDay: plan.mealsPerDay,
             mealTypes: plan.mealTypes,
             price: plan.price,
+            planType: plan.planType,
             weeklyMenu: plan.weeklyMenu,
+            monthlyMenu: plan.monthlyMenu,
             isActive: plan.isActive,
             createdAt: plan.createdAt,
           );

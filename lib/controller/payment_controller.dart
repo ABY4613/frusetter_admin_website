@@ -4,14 +4,18 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/api_constants.dart';
 import '../model/payment.dart';
+import '../model/reminder_response.dart';
 
 class PaymentController with ChangeNotifier {
   bool _isLoading = false;
+  bool _isSendingReminders = false;
   String? _errorMessage;
+  String? _reminderSuccessMessage;
   List<Payment> _allPayments = []; // All payments from API
   List<Payment> _filteredPayments = []; // Filtered results
   PaymentPagination? _pagination;
   PaymentSummary? _summary;
+  ReminderData? _lastReminderData;
 
   // Filter state
   String _searchQuery = '';
@@ -20,7 +24,10 @@ class PaymentController with ChangeNotifier {
   int _limit = 10;
 
   bool get isLoading => _isLoading;
+  bool get isSendingReminders => _isSendingReminders;
   String? get errorMessage => _errorMessage;
+  String? get reminderSuccessMessage => _reminderSuccessMessage;
+  ReminderData? get lastReminderData => _lastReminderData;
 
   /// Returns paginated payments for display
   List<Payment> get payments {
@@ -257,5 +264,72 @@ class PaymentController with ChangeNotifier {
   String get formattedPaidAmount {
     if (_summary == null) return '₹0';
     return '₹${_summary!.totalPaidAmount.toStringAsFixed(0)}';
+  }
+
+  /// Send payment reminders to users with pending/overdue payments
+  Future<ReminderResponse?> sendReminders() async {
+    _isSendingReminders = true;
+    _errorMessage = null;
+    _reminderSuccessMessage = null;
+    _lastReminderData = null;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      final uri = Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.adminPaymentReminders}');
+
+      debugPrint('Sending payment reminders to: $uri');
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      debugPrint(
+          'Send Reminders Response: ${response.statusCode} ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final reminderResponse = ReminderResponse.fromJson(data);
+
+        if (reminderResponse.success) {
+          _lastReminderData = reminderResponse.data;
+          _reminderSuccessMessage = reminderResponse.message;
+          _isSendingReminders = false;
+          notifyListeners();
+          return reminderResponse;
+        } else {
+          _errorMessage = reminderResponse.message;
+          _isSendingReminders = false;
+          notifyListeners();
+          return null;
+        }
+      } else {
+        final data = jsonDecode(response.body);
+        _errorMessage = data['message'] ?? 'Failed to send reminders';
+        _isSendingReminders = false;
+        notifyListeners();
+        return null;
+      }
+    } catch (e) {
+      _errorMessage = 'Connection error: $e';
+      debugPrint('Send Reminders Error: $e');
+      _isSendingReminders = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Clear reminder messages
+  void clearReminderMessages() {
+    _reminderSuccessMessage = null;
+    _lastReminderData = null;
+    notifyListeners();
   }
 }

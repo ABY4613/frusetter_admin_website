@@ -616,10 +616,23 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                             '${plan.mealsPerDay} Meals/Day',
                             const Color(0xFF8B5CF6),
                           ),
-                          if (plan.weeklyMenu != null)
+                          // Plan Type Badge
+                          _buildStatChip(
+                            plan.isMonthlyPlan
+                                ? Icons.calendar_month
+                                : Icons.calendar_view_week,
+                            plan.isMonthlyPlan ? 'Monthly Plan' : 'Weekly Plan',
+                            plan.isMonthlyPlan
+                                ? const Color(0xFFEC4899)
+                                : const Color(0xFF10B981),
+                          ),
+                          // Days configured chip
+                          if (plan.configuredDaysCount > 0)
                             _buildStatChip(
-                              Icons.calendar_view_week,
-                              '${plan.configuredDaysCount}/7 Days Menu',
+                              Icons.check_circle_outline,
+                              plan.isMonthlyPlan
+                                  ? '${plan.configuredDaysCount}/28 Days Menu'
+                                  : '${plan.configuredDaysCount}/7 Days Menu',
                               const Color(0xFF10B981),
                             ),
                         ],
@@ -691,7 +704,7 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                   ),
                 ),
                 const SizedBox(width: 32),
-                // Image Section with weekly menu preview
+                // Image Section with menu preview
                 Expanded(
                   flex: 2,
                   child: Column(
@@ -720,9 +733,8 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                           ),
                         ),
                       ),
-                      // Weekly menu mini preview
-                      if (plan.weeklyMenu != null &&
-                          plan.configuredDaysCount > 0)
+                      // Menu preview (weekly or monthly)
+                      if (plan.configuredDaysCount > 0)
                         Container(
                           margin: const EdgeInsets.only(top: 12),
                           padding: const EdgeInsets.all(12),
@@ -737,23 +749,41 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.calendar_view_week,
+                                    plan.isMonthlyPlan
+                                        ? Icons.calendar_month
+                                        : Icons.calendar_view_week,
                                     size: 16,
                                     color: const Color(0xFF65902D),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Weekly Menu',
+                                    plan.isMonthlyPlan
+                                        ? 'Monthly Menu'
+                                        : 'Weekly Menu',
                                     style: GoogleFonts.inter(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.black87,
                                     ),
                                   ),
+                                  const Spacer(),
+                                  if (plan.isMonthlyPlan &&
+                                      plan.monthlyMenu != null)
+                                    Text(
+                                      '${plan.configuredWeeksCount}/4 weeks',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              _buildWeeklyMenuPreview(plan.weeklyMenu!),
+                              if (plan.isMonthlyPlan &&
+                                  plan.monthlyMenu != null)
+                                _buildMonthlyMenuPreview(plan.monthlyMenu!)
+                              else if (plan.weeklyMenu != null)
+                                _buildWeeklyMenuPreview(plan.weeklyMenu!),
                             ],
                           ),
                         ),
@@ -837,6 +867,78 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
     );
   }
 
+  Widget _buildMonthlyMenuPreview(MonthlyMenu menu) {
+    final weeks = [menu.week1, menu.week2, menu.week3, menu.week4];
+    final weekLabels = ['W1', 'W2', 'W3', 'W4'];
+
+    return Column(
+      children: [
+        // Week indicators
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(4, (weekIndex) {
+            final week = weeks[weekIndex];
+            final hasContent = week != null && week.hasAnyMeals;
+
+            return Expanded(
+              child: Container(
+                margin: EdgeInsets.only(right: weekIndex < 3 ? 8 : 0),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: hasContent
+                      ? const Color(0xFF8AC53D).withOpacity(0.15)
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: hasContent
+                        ? const Color(0xFF8AC53D).withOpacity(0.4)
+                        : Colors.grey.shade200,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      weekLabels[weekIndex],
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: hasContent
+                            ? const Color(0xFF65902D)
+                            : Colors.grey.shade500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: hasContent
+                            ? const Color(0xFF8AC53D)
+                            : Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    if (week != null && hasContent)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '${week.configuredDaysCount}/7',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
   void _confirmDelete(MealPlan plan) {
     showDialog(
       context: context,
@@ -897,6 +999,9 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
   final _mealsPerDayController = TextEditingController();
   final _priceController = TextEditingController();
 
+  // Plan type
+  String _selectedPlanType = 'weekly'; // 'weekly' or 'monthly'
+
   // Available meal types
   final List<String> _availableMealTypes = [
     'breakfast',
@@ -916,14 +1021,57 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
     'saturday',
     'sunday'
   ];
-  Map<String, Map<String, Map<String, String>>> _weeklyMenuData = {};
-  String? _expandedDay;
 
+  // For weekly plans - single week data
+  Map<String, Map<String, Map<String, String>>> _weeklyMenuData = {};
+
+  // For monthly plans - 4 weeks of data
+  final List<String> _weeks = ['week1', 'week2', 'week3', 'week4'];
+  Map<String, Map<String, Map<String, Map<String, String>>>> _monthlyMenuData =
+      {};
+  String _selectedWeek = 'week1';
+
+  String? _expandedDay;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeMenuData();
+
+    if (widget.editPlan != null) {
+      _nameController.text = widget.editPlan!.name;
+      _descriptionController.text = widget.editPlan!.description;
+      _durationController.text = widget.editPlan!.durationDays.toString();
+      _mealsPerDayController.text = widget.editPlan!.mealsPerDay.toString();
+      _priceController.text = widget.editPlan!.price.toString();
+      _selectedMealTypes.addAll(widget.editPlan!.mealTypes);
+      _selectedPlanType = widget.editPlan!.planType;
+
+      // Load existing weekly menu if available
+      if (widget.editPlan!.weeklyMenu != null) {
+        final wm = widget.editPlan!.weeklyMenu!;
+        _loadDayMealsToWeekly('monday', wm.monday);
+        _loadDayMealsToWeekly('tuesday', wm.tuesday);
+        _loadDayMealsToWeekly('wednesday', wm.wednesday);
+        _loadDayMealsToWeekly('thursday', wm.thursday);
+        _loadDayMealsToWeekly('friday', wm.friday);
+        _loadDayMealsToWeekly('saturday', wm.saturday);
+        _loadDayMealsToWeekly('sunday', wm.sunday);
+      }
+
+      // Load existing monthly menu if available
+      if (widget.editPlan!.monthlyMenu != null) {
+        final mm = widget.editPlan!.monthlyMenu!;
+        _loadWeekToMonthly('week1', mm.week1);
+        _loadWeekToMonthly('week2', mm.week2);
+        _loadWeekToMonthly('week3', mm.week3);
+        _loadWeekToMonthly('week4', mm.week4);
+      }
+    }
+  }
+
+  void _initializeMenuData() {
     // Initialize weekly menu data structure
     for (var day in _weekDays) {
       _weeklyMenuData[day] = {
@@ -933,29 +1081,20 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
       };
     }
 
-    if (widget.editPlan != null) {
-      _nameController.text = widget.editPlan!.name;
-      _descriptionController.text = widget.editPlan!.description;
-      _durationController.text = widget.editPlan!.durationDays.toString();
-      _mealsPerDayController.text = widget.editPlan!.mealsPerDay.toString();
-      _priceController.text = widget.editPlan!.price.toString();
-      _selectedMealTypes.addAll(widget.editPlan!.mealTypes);
-
-      // Load existing weekly menu if available
-      if (widget.editPlan!.weeklyMenu != null) {
-        final wm = widget.editPlan!.weeklyMenu!;
-        _loadDayMeals('monday', wm.monday);
-        _loadDayMeals('tuesday', wm.tuesday);
-        _loadDayMeals('wednesday', wm.wednesday);
-        _loadDayMeals('thursday', wm.thursday);
-        _loadDayMeals('friday', wm.friday);
-        _loadDayMeals('saturday', wm.saturday);
-        _loadDayMeals('sunday', wm.sunday);
+    // Initialize monthly menu data structure (4 weeks)
+    for (var week in _weeks) {
+      _monthlyMenuData[week] = {};
+      for (var day in _weekDays) {
+        _monthlyMenuData[week]![day] = {
+          'breakfast': {'name': '', 'description': ''},
+          'lunch': {'name': '', 'description': ''},
+          'dinner': {'name': '', 'description': ''},
+        };
       }
     }
   }
 
-  void _loadDayMeals(String day, DayMeals? dayMeals) {
+  void _loadDayMealsToWeekly(String day, DayMeals? dayMeals) {
     if (dayMeals == null) return;
     if (dayMeals.breakfast != null) {
       _weeklyMenuData[day]!['breakfast']!['name'] = dayMeals.breakfast!.name;
@@ -974,9 +1113,41 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
     }
   }
 
+  void _loadWeekToMonthly(String weekKey, WeeklyMenu? weeklyMenu) {
+    if (weeklyMenu == null) return;
+    for (var day in _weekDays) {
+      final dayMeals = weeklyMenu.getDay(day);
+      if (dayMeals != null) {
+        if (dayMeals.breakfast != null) {
+          _monthlyMenuData[weekKey]![day]!['breakfast']!['name'] =
+              dayMeals.breakfast!.name;
+          _monthlyMenuData[weekKey]![day]!['breakfast']!['description'] =
+              dayMeals.breakfast!.description;
+        }
+        if (dayMeals.lunch != null) {
+          _monthlyMenuData[weekKey]![day]!['lunch']!['name'] =
+              dayMeals.lunch!.name;
+          _monthlyMenuData[weekKey]![day]!['lunch']!['description'] =
+              dayMeals.lunch!.description;
+        }
+        if (dayMeals.dinner != null) {
+          _monthlyMenuData[weekKey]![day]!['dinner']!['name'] =
+              dayMeals.dinner!.name;
+          _monthlyMenuData[weekKey]![day]!['dinner']!['description'] =
+              dayMeals.dinner!.description;
+        }
+      }
+    }
+  }
+
   WeeklyMenu _buildWeeklyMenu() {
+    return _buildWeeklyMenuFromData(_weeklyMenuData);
+  }
+
+  WeeklyMenu _buildWeeklyMenuFromData(
+      Map<String, Map<String, Map<String, String>>> menuData) {
     DayMeals? buildDayMeals(String day) {
-      final dayData = _weeklyMenuData[day]!;
+      final dayData = menuData[day]!;
       final hasData = dayData.values.any((meal) =>
           meal['name']!.isNotEmpty || meal['description']!.isNotEmpty);
       if (!hasData) return null;
@@ -1017,6 +1188,15 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
     );
   }
 
+  MonthlyMenu _buildMonthlyMenu() {
+    return MonthlyMenu(
+      week1: _buildWeeklyMenuFromData(_monthlyMenuData['week1']!),
+      week2: _buildWeeklyMenuFromData(_monthlyMenuData['week2']!),
+      week3: _buildWeeklyMenuFromData(_monthlyMenuData['week3']!),
+      week4: _buildWeeklyMenuFromData(_monthlyMenuData['week4']!),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -1040,6 +1220,8 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
         _isSubmitting = true;
       });
 
+      final isMonthly = _selectedPlanType == 'monthly';
+
       final plan = MealPlan(
         name: _nameController.text,
         description: _descriptionController.text,
@@ -1047,7 +1229,9 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
         mealsPerDay: int.parse(_mealsPerDayController.text),
         mealTypes: _selectedMealTypes,
         price: double.parse(_priceController.text),
-        weeklyMenu: _buildWeeklyMenu(),
+        planType: _selectedPlanType,
+        weeklyMenu: isMonthly ? null : _buildWeeklyMenu(),
+        monthlyMenu: isMonthly ? _buildMonthlyMenu() : null,
       );
 
       bool success;
@@ -1065,15 +1249,20 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
         });
 
         if (success) {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(widget.editPlan != null
-                  ? 'Plan updated successfully'
-                  : 'Plan created successfully'),
-              backgroundColor: const Color(0xFF8AC53D),
-            ),
-          );
+          // Refresh the plans list
+          await context.read<MealsController>().fetchPlans();
+
+          if (mounted) {
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(widget.editPlan != null
+                    ? 'Plan updated successfully'
+                    : 'Plan created successfully'),
+                backgroundColor: const Color(0xFF8AC53D),
+              ),
+            );
+          }
         } else {
           final error = context.read<MealsController>().errorMessage ??
               (widget.editPlan != null
@@ -1319,12 +1508,11 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
 
                       const SizedBox(height: 32),
 
-                      // Weekly Menu Section
-                      _buildSectionHeader(
-                          'Weekly Menu', Icons.calendar_view_week),
+                      // Plan Type Section
+                      _buildSectionHeader('Plan Type', Icons.event_repeat),
                       const SizedBox(height: 12),
                       Text(
-                        'Configure meals for each day of the week. Click on a day to expand and add meals.',
+                        'Select the type of meal plan you want to create.',
                         style: GoogleFonts.inter(
                           color: Colors.grey.shade600,
                           fontSize: 13,
@@ -1332,8 +1520,73 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                       ),
                       const SizedBox(height: 16),
 
+                      // Plan Type Selector
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildPlanTypeButton(
+                                'weekly',
+                                'Weekly',
+                                Icons.calendar_view_week,
+                                '7 days menu',
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildPlanTypeButton(
+                                'monthly',
+                                'Monthly',
+                                Icons.calendar_month,
+                                '4 weeks menu',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Menu Section
+                      _buildSectionHeader(
+                          _selectedPlanType == 'monthly'
+                              ? 'Monthly Menu'
+                              : 'Weekly Menu',
+                          _selectedPlanType == 'monthly'
+                              ? Icons.calendar_month
+                              : Icons.calendar_view_week),
+                      const SizedBox(height: 12),
+                      Text(
+                        _selectedPlanType == 'monthly'
+                            ? 'Configure meals for each week of the month. Select a week and add meals for each day.'
+                            : 'Configure meals for each day of the week. Click on a day to expand and add meals.',
+                        style: GoogleFonts.inter(
+                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Week Tabs for Monthly Plan
+                      if (_selectedPlanType == 'monthly') ...[
+                        _buildWeekTabs(),
+                        const SizedBox(height: 16),
+                      ],
+
                       // Day Cards
-                      ..._weekDays.map((day) => _buildDayCard(day)).toList(),
+                      ..._weekDays
+                          .map((day) => _buildDayCard(
+                                day,
+                                weekKey: _selectedPlanType == 'monthly'
+                                    ? _selectedWeek
+                                    : null,
+                              ))
+                          .toList(),
                     ],
                   ),
                 ),
@@ -1438,9 +1691,177 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
     );
   }
 
-  Widget _buildDayCard(String day) {
+  Widget _buildPlanTypeButton(
+      String type, String label, IconData icon, String subtitle) {
+    final isSelected = _selectedPlanType == type;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedPlanType = type;
+          _expandedDay = null; // Reset expanded day when switching
+        });
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF8AC53D).withOpacity(0.1)
+                    : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color:
+                    isSelected ? const Color(0xFF65902D) : Colors.grey.shade500,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.black87 : Colors.grey.shade600,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8AC53D),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 14,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeekTabs() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: _weeks.map((week) {
+          final isSelected = _selectedWeek == week;
+          final weekNumber = int.parse(week.replaceAll('week', ''));
+          final weekData = _monthlyMenuData[week]!;
+          final hasContent = weekData.values.any((dayData) => dayData.values
+              .any((meal) =>
+                  meal['name']!.isNotEmpty || meal['description']!.isNotEmpty));
+
+          return Expanded(
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedWeek = week;
+                  _expandedDay =
+                      null; // Reset expanded day when switching weeks
+                });
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Week $weekNumber',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color:
+                            isSelected ? Colors.black87 : Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: hasContent
+                            ? const Color(0xFF8AC53D)
+                            : Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildDayCard(String day, {String? weekKey}) {
     final isExpanded = _expandedDay == day;
-    final dayData = _weeklyMenuData[day]!;
+
+    // Get day data based on whether it's weekly or monthly
+    final Map<String, Map<String, String>> dayData;
+    if (weekKey != null) {
+      dayData = _monthlyMenuData[weekKey]![day]!;
+    } else {
+      dayData = _weeklyMenuData[day]!;
+    }
+
     final hasContent = dayData.values.any(
         (meal) => meal['name']!.isNotEmpty || meal['description']!.isNotEmpty);
 
@@ -1563,7 +1984,7 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
           // Expanded Content
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
-            secondChild: _buildDayContent(day),
+            secondChild: _buildDayContent(day, weekKey: weekKey),
             crossFadeState: isExpanded
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
@@ -1582,7 +2003,7 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
     return meals.isEmpty ? 'No meals configured' : meals.join(' • ');
   }
 
-  Widget _buildDayContent(String day) {
+  Widget _buildDayContent(String day, {String? weekKey}) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
@@ -1590,23 +2011,38 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
           const Divider(),
           const SizedBox(height: 12),
           _buildMealInput(day, 'breakfast', Icons.free_breakfast_outlined,
-              const Color(0xFFFFAB40)),
+              const Color(0xFFFFAB40),
+              weekKey: weekKey),
           const SizedBox(height: 16),
           _buildMealInput(day, 'lunch', Icons.lunch_dining_outlined,
-              const Color(0xFF42A5F5)),
+              const Color(0xFF42A5F5),
+              weekKey: weekKey),
           const SizedBox(height: 16),
           _buildMealInput(day, 'dinner', Icons.dinner_dining_outlined,
-              const Color(0xFF7E57C2)),
+              const Color(0xFF7E57C2),
+              weekKey: weekKey),
         ],
       ),
     );
   }
 
   Widget _buildMealInput(
-      String day, String mealType, IconData icon, Color color) {
-    final mealData = _weeklyMenuData[day]![mealType]!;
+      String day, String mealType, IconData icon, Color color,
+      {String? weekKey}) {
+    // Get meal data based on whether it's weekly or monthly
+    final Map<String, String> mealData;
+    if (weekKey != null) {
+      mealData = _monthlyMenuData[weekKey]![day]![mealType]!;
+    } else {
+      mealData = _weeklyMenuData[day]![mealType]!;
+    }
+
+    // Create a unique key for the TextFormField to force rebuild when switching weeks
+    final uniqueKey =
+        weekKey != null ? '${weekKey}_${day}_$mealType' : '${day}_$mealType';
 
     return Container(
+      key: ValueKey(uniqueKey),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.05),
@@ -1639,6 +2075,7 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
           ),
           const SizedBox(height: 12),
           TextFormField(
+            key: ValueKey('${uniqueKey}_name'),
             initialValue: mealData['name'],
             decoration: InputDecoration(
               hintText: 'Meal name',
@@ -1664,12 +2101,17 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
             ),
             onChanged: (value) {
               setState(() {
-                _weeklyMenuData[day]![mealType]!['name'] = value;
+                if (weekKey != null) {
+                  _monthlyMenuData[weekKey]![day]![mealType]!['name'] = value;
+                } else {
+                  _weeklyMenuData[day]![mealType]!['name'] = value;
+                }
               });
             },
           ),
           const SizedBox(height: 8),
           TextFormField(
+            key: ValueKey('${uniqueKey}_description'),
             initialValue: mealData['description'],
             decoration: InputDecoration(
               hintText: 'Description (optional)',
@@ -1695,7 +2137,12 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
             ),
             onChanged: (value) {
               setState(() {
-                _weeklyMenuData[day]![mealType]!['description'] = value;
+                if (weekKey != null) {
+                  _monthlyMenuData[weekKey]![day]![mealType]!['description'] =
+                      value;
+                } else {
+                  _weeklyMenuData[day]![mealType]!['description'] = value;
+                }
               });
             },
           ),

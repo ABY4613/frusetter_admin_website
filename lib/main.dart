@@ -8,6 +8,7 @@ import 'controller/auth_controller.dart';
 import 'controller/meals_controller.dart';
 import 'controller/subscription_controller.dart';
 import 'controller/payment_controller.dart';
+import 'controller/cutoff_controller.dart';
 //import 'view/side_bar/screens/company_management/view_models/company_view_model.dart';
 
 void main() {
@@ -20,6 +21,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => MealsController()),
         ChangeNotifierProvider(create: (_) => SubscriptionController()),
         ChangeNotifierProvider(create: (_) => PaymentController()),
+        ChangeNotifierProvider(create: (_) => CutoffController()),
         // ChangeNotifierProvider(create: (_) => CompanyViewModel()),
       ],
       child: const MyApp(),

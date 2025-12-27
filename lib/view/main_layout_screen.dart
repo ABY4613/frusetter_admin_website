@@ -8,6 +8,7 @@ import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/de
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/feedback/feedback_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/financials/financials_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/meals_planning/meals_planning_screen.dart';
+import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/cutoff_settings/cutoff_settings_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
 import 'package:provider/provider.dart';
 import '../core/view_models/navigation_view_model.dart';
@@ -84,6 +85,8 @@ class MainLayoutScreen extends StatelessWidget {
         return 'Payments & Billing';
       case NavigationItem.feedback:
         return 'Feedback';
+      case NavigationItem.cutoffSettings:
+        return 'Cutoff Settings';
     }
   }
 }
@@ -153,6 +156,8 @@ class _ScreenLoaderState extends State<_ScreenLoader> {
         return const FinancialsScreen();
       case NavigationItem.feedback:
         return const FeedbackScreen();
+      case NavigationItem.cutoffSettings:
+        return const CutoffSettingsScreen();
     }
   }
 }

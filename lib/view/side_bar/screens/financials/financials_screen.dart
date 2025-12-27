@@ -31,6 +31,251 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
     super.dispose();
   }
 
+  /// Send payment reminders and show result dialog
+  Future<void> _sendReminders(PaymentController controller) async {
+    final result = await controller.sendReminders();
+
+    if (!mounted) return;
+
+    if (result != null && result.success) {
+      _showReminderResultDialog(
+        title: 'Reminders Sent Successfully!',
+        isSuccess: true,
+        remindersSent: result.data.remindersSent,
+        usersNotified: result.data.usersNotified,
+      );
+    } else {
+      _showReminderResultDialog(
+        title: 'Failed to Send Reminders',
+        isSuccess: false,
+        errorMessage: controller.errorMessage ?? 'Unknown error occurred',
+      );
+    }
+  }
+
+  /// Show dialog with reminder results
+  void _showReminderResultDialog({
+    required String title,
+    required bool isSuccess,
+    int remindersSent = 0,
+    List<String>? usersNotified,
+    String? errorMessage,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Container(
+          width: 450,
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Success/Error Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: isSuccess
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isSuccess ? Icons.check_circle : Icons.error,
+                  size: 48,
+                  color: isSuccess ? Colors.green : Colors.red,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+
+              if (isSuccess) ...[
+                // Success Content
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.green.withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.notifications_active,
+                            color: Colors.orange.shade600,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '$remindersSent Reminders Sent',
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (usersNotified != null &&
+                          usersNotified.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Users Notified:',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textLight,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 150),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: usersNotified
+                                  .map((user) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 32,
+                                              height: 32,
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    AppColors.primaryColor,
+                                                    AppColors.primaryColor
+                                                        .withOpacity(0.7),
+                                                  ],
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  user.isNotEmpty
+                                                      ? user[0].toUpperCase()
+                                                      : '?',
+                                                  style: GoogleFonts.inter(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                user,
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 14,
+                                                  color: AppColors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            Icon(
+                                              Icons.check_circle,
+                                              color: Colors.green,
+                                              size: 18,
+                                            ),
+                                          ],
+                                        ),
+                                      ))
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ] else ...[
+                // Error Content
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.red.shade400,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          errorMessage ??
+                              'An error occurred while sending reminders.',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.red.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 28),
+
+              // Close Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isSuccess
+                        ? AppColors.primaryColor
+                        : Colors.grey.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    isSuccess ? 'Done' : 'Close',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -273,6 +518,38 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+              onPressed: controller.isSendingReminders
+                  ? null
+                  : () => _sendReminders(controller),
+              icon: controller.isSendingReminders
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.notifications_active, size: 18),
+              label: Text(
+                controller.isSendingReminders ? 'Sending...' : 'Send Reminder',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.shade600,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.orange.shade300,
+                disabledForegroundColor: Colors.white70,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 0,
               ),
             ),
             const SizedBox(width: 12),

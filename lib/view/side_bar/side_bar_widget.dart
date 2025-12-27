@@ -84,6 +84,16 @@ class SideBarWidget extends StatelessWidget {
                       onTap: () =>
                           viewModel.setNavigationItem(NavigationItem.feedback),
                     ),
+                    const SizedBox(height: 8),
+                    _buildNavItem(
+                      icon: Icons.access_time_filled, // Cutoff Settings
+                      label: 'Cutoff Settings',
+                      item: NavigationItem.cutoffSettings,
+                      isSelected: viewModel.selectedItem ==
+                          NavigationItem.cutoffSettings,
+                      onTap: () => viewModel
+                          .setNavigationItem(NavigationItem.cutoffSettings),
+                    ),
                   ],
                 );
               },
