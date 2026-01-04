@@ -17,4 +17,5 @@ class ApiConstants {
   static const String adminPaymentReminders =
       '$apiVersion/admin/payments/send-reminders';
   static const String adminCutoffSettings = '$apiVersion/admin/cutoff-settings';
+  static const String adminAddons = '$apiVersion/admin/addons';
 }

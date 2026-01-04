@@ -5,7 +5,7 @@ import 'widgets/delivery_stats.dart';
 import 'widgets/active_fleet_widget.dart';
 
 class DeliveriesScreen extends StatelessWidget {
-  const DeliveriesScreen({Key? key}) : super(key: key);
+  const DeliveriesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

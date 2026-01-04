@@ -3,7 +3,7 @@ import '../../../../../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DeliveryHeader extends StatelessWidget {
-  const DeliveryHeader({Key? key}) : super(key: key);
+  const DeliveryHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

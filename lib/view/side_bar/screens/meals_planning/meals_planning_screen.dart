@@ -6,7 +6,7 @@ import '../../../../controller/meals_controller.dart';
 import '../../../../model/meal_plan.dart';
 
 class MealsPlanningScreen extends StatefulWidget {
-  const MealsPlanningScreen({Key? key}) : super(key: key);
+  const MealsPlanningScreen({super.key});
 
   @override
   State<MealsPlanningScreen> createState() => _MealsPlanningScreenState();
@@ -339,8 +339,9 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
           displayedPlans = displayedPlans.where((plan) {
             if (_selectedDuration == '1 Week') return plan.durationDays == 7;
             if (_selectedDuration == '2 Weeks') return plan.durationDays == 14;
-            if (_selectedDuration == '4 Weeks')
+            if (_selectedDuration == '4 Weeks') {
               return plan.durationDays >= 28 && plan.durationDays <= 31;
+            }
             return true;
           }).toList();
         }
@@ -985,7 +986,7 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
 
 class CreatePlanDialog extends StatefulWidget {
   final MealPlan? editPlan;
-  const CreatePlanDialog({Key? key, this.editPlan}) : super(key: key);
+  const CreatePlanDialog({super.key, this.editPlan});
 
   @override
   State<CreatePlanDialog> createState() => _CreatePlanDialogState();
@@ -1023,11 +1024,11 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
   ];
 
   // For weekly plans - single week data
-  Map<String, Map<String, Map<String, String>>> _weeklyMenuData = {};
+  final Map<String, Map<String, Map<String, String>>> _weeklyMenuData = {};
 
   // For monthly plans - 4 weeks of data
   final List<String> _weeks = ['week1', 'week2', 'week3', 'week4'];
-  Map<String, Map<String, Map<String, Map<String, String>>>> _monthlyMenuData =
+  final Map<String, Map<String, Map<String, Map<String, String>>>> _monthlyMenuData =
       {};
   String _selectedWeek = 'week1';
 
@@ -1414,10 +1415,12 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                                   decoration: _inputDecoration(
                                       'e.g. 30', Icons.calendar_today_outlined),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty)
+                                    if (v == null || v.isEmpty) {
                                       return 'Required';
-                                    if (int.tryParse(v) == null)
+                                    }
+                                    if (int.tryParse(v) == null) {
                                       return 'Invalid number';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -1436,10 +1439,12 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                                   decoration: _inputDecoration(
                                       'e.g. 3', Icons.restaurant_outlined),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty)
+                                    if (v == null || v.isEmpty) {
                                       return 'Required';
-                                    if (int.tryParse(v) == null)
+                                    }
+                                    if (int.tryParse(v) == null) {
                                       return 'Invalid number';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -1460,8 +1465,9 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                             _inputDecoration('e.g. 7500', Icons.attach_money),
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Required';
-                          if (double.tryParse(v) == null)
+                          if (double.tryParse(v) == null) {
                             return 'Invalid price';
+                          }
                           return null;
                         },
                       ),
@@ -1586,7 +1592,7 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                                     ? _selectedWeek
                                     : null,
                               ))
-                          .toList(),
+                          ,
                     ],
                   ),
                 ),

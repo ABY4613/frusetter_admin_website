@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'edit_subscription_dialog.dart';
 
 class SubscriptionTable extends StatelessWidget {
-  const SubscriptionTable({Key? key}) : super(key: key);
+  const SubscriptionTable({super.key});
 
   @override
   Widget build(BuildContext context) {

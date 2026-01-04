@@ -11,8 +11,7 @@ class DashboardCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
 
-  const DashboardCard({Key? key, required this.child, this.padding})
-      : super(key: key);
+  const DashboardCard({super.key, required this.child, this.padding});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +35,7 @@ class DashboardCard extends StatelessWidget {
 }
 
 class TodaysMealsCard extends StatefulWidget {
-  const TodaysMealsCard({Key? key}) : super(key: key);
+  const TodaysMealsCard({super.key});
 
   @override
   State<TodaysMealsCard> createState() => _TodaysMealsCardState();
@@ -188,7 +187,7 @@ class _TodaysMealsCardState extends State<TodaysMealsCard> {
             style: GoogleFonts.inter(fontSize: 12),
             children: [
               TextSpan(
-                  text: label + " ",
+                  text: "$label ",
                   style: TextStyle(
                       color: AppColors.black, fontWeight: FontWeight.w600)),
               TextSpan(
@@ -202,7 +201,7 @@ class _TodaysMealsCardState extends State<TodaysMealsCard> {
 }
 
 class DeliveryFleetCard extends StatelessWidget {
-  const DeliveryFleetCard({Key? key}) : super(key: key);
+  const DeliveryFleetCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -304,7 +303,7 @@ class DeliveryFleetCard extends StatelessWidget {
 }
 
 class SubscriptionsCard extends StatelessWidget {
-  const SubscriptionsCard({Key? key}) : super(key: key);
+  const SubscriptionsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -417,7 +416,7 @@ class SubscriptionsCard extends StatelessWidget {
 }
 
 class UpcomingVolumeCard extends StatelessWidget {
-  const UpcomingVolumeCard({Key? key}) : super(key: key);
+  const UpcomingVolumeCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -516,7 +515,7 @@ class UpcomingVolumeCard extends StatelessWidget {
 }
 
 class PendingPaymentsCard extends StatelessWidget {
-  const PendingPaymentsCard({Key? key}) : super(key: key);
+  const PendingPaymentsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -607,7 +606,7 @@ class PendingPaymentsCard extends StatelessWidget {
 }
 
 class FeedbackCard extends StatelessWidget {
-  const FeedbackCard({Key? key}) : super(key: key);
+  const FeedbackCard({super.key});
 
   @override
   Widget build(BuildContext context) {

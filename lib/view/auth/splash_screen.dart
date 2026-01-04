@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frusette_admin_operations_web_dashboard/core/theme/app_colors.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/auth/login_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
 import 'package:provider/provider.dart';

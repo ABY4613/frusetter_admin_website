@@ -6,10 +6,10 @@ class UsersTableWidget extends StatefulWidget {
   final String selectedFilter;
 
   const UsersTableWidget({
-    Key? key,
+    super.key,
     required this.searchQuery,
     required this.selectedFilter,
-  }) : super(key: key);
+  });
 
   @override
   State<UsersTableWidget> createState() => _UsersTableWidgetState();
@@ -106,7 +106,7 @@ class _UsersTableWidgetState extends State<UsersTableWidget> {
       },
       children: [
         _buildTableHeader(),
-        ..._users.map((user) => _buildTableRow(user)).toList(),
+        ..._users.map((user) => _buildTableRow(user)),
       ],
     );
   }

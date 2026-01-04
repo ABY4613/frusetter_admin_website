@@ -7,7 +7,7 @@ import 'package:frusette_admin_operations_web_dashboard/model/payment.dart';
 import 'package:intl/intl.dart';
 
 class FinancialsScreen extends StatefulWidget {
-  const FinancialsScreen({Key? key}) : super(key: key);
+  const FinancialsScreen({super.key});
 
   @override
   State<FinancialsScreen> createState() => _FinancialsScreenState();

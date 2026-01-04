@@ -7,7 +7,7 @@ import 'widgets/subscription_filters.dart';
 import 'widgets/subscription_table.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
-  const SubscriptionsScreen({Key? key}) : super(key: key);
+  const SubscriptionsScreen({super.key});
 
   @override
   State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();

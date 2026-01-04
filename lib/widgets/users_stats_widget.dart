@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 
 class UsersStatsWidget extends StatelessWidget {
-  const UsersStatsWidget({Key? key}) : super(key: key);
+  const UsersStatsWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

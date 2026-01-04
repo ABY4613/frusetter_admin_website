@@ -8,12 +8,12 @@ class UsersHeaderWidget extends StatelessWidget {
   final Function(String) onFilterChanged;
 
   const UsersHeaderWidget({
-    Key? key,
+    super.key,
     required this.searchQuery,
     required this.onSearchChanged,
     required this.selectedFilter,
     required this.onFilterChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

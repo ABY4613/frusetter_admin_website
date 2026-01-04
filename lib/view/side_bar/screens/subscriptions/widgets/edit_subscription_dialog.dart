@@ -11,8 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 class EditSubscriptionDialog extends StatefulWidget {
   final Subscription subscription;
 
-  const EditSubscriptionDialog({Key? key, required this.subscription})
-      : super(key: key);
+  const EditSubscriptionDialog({super.key, required this.subscription});
 
   @override
   State<EditSubscriptionDialog> createState() => _EditSubscriptionDialogState();
@@ -327,7 +326,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
             }
 
             return DropdownButtonFormField<MealPlan>(
-              value: _selectedPlan,
+              initialValue: _selectedPlan,
               decoration: InputDecoration(
                 hintText: 'Select a plan',
                 hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -397,7 +396,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedStatus,
+          initialValue: _selectedStatus,
           decoration: InputDecoration(
             hintText: 'Select status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -456,7 +455,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedPaymentStatus,
+          initialValue: _selectedPaymentStatus,
           decoration: InputDecoration(
             hintText: 'Select payment status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),

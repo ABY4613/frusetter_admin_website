@@ -9,13 +9,14 @@ import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/fe
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/financials/financials_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/meals_planning/meals_planning_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/cutoff_settings/cutoff_settings_screen.dart';
+import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/addon_food/addon_food_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
 import 'package:provider/provider.dart';
 import '../core/view_models/navigation_view_model.dart';
 import '../core/theme/app_colors.dart';
 
 class MainLayoutScreen extends StatelessWidget {
-  const MainLayoutScreen({Key? key}) : super(key: key);
+  const MainLayoutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +88,8 @@ class MainLayoutScreen extends StatelessWidget {
         return 'Feedback';
       case NavigationItem.cutoffSettings:
         return 'Cutoff Settings';
+      case NavigationItem.addonFood:
+        return 'Add-on Food';
     }
   }
 }
@@ -94,7 +97,7 @@ class MainLayoutScreen extends StatelessWidget {
 class _ScreenLoader extends StatefulWidget {
   final NavigationItem selectedItem;
 
-  const _ScreenLoader({Key? key, required this.selectedItem}) : super(key: key);
+  const _ScreenLoader({super.key, required this.selectedItem});
 
   @override
   State<_ScreenLoader> createState() => _ScreenLoaderState();
@@ -158,6 +161,8 @@ class _ScreenLoaderState extends State<_ScreenLoader> {
         return const FeedbackScreen();
       case NavigationItem.cutoffSettings:
         return const CutoffSettingsScreen();
+      case NavigationItem.addonFood:
+        return const AddonFoodScreen();
     }
   }
 }

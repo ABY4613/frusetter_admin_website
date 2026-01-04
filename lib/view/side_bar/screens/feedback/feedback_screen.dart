@@ -5,7 +5,7 @@ import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dar
 import 'package:frusette_admin_operations_web_dashboard/model/feedback_item.dart';
 
 class FeedbackScreen extends StatefulWidget {
-  const FeedbackScreen({Key? key}) : super(key: key);
+  const FeedbackScreen({super.key});
 
   @override
   State<FeedbackScreen> createState() => _FeedbackScreenState();
@@ -624,9 +624,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   Widget _buildSentimentBar(int star, double percentage) {
     Color barColor;
-    if (star >= 4)
+    if (star >= 4) {
       barColor = AppColors.primaryColor;
-    else if (star == 3)
+    } else if (star == 3)
       barColor = Colors.grey;
     else
       barColor = AppColors.accentRed;

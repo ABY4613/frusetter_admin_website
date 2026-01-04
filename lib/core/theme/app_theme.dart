@@ -24,9 +24,7 @@ class AppTheme {
         secondary: primaryColor,
         onSecondary: Colors.white,
         surface: Colors.white,
-        onSurface: black, // Text color on surfaces
-        background: Colors.white,
-        onBackground: black,
+        onSurface: black,
         error: Color(0xFFEF4444),
         onError: Colors.white,
       ),

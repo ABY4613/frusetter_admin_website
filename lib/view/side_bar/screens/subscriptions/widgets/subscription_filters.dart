@@ -5,7 +5,7 @@ import '../../../../../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SubscriptionFilters extends StatefulWidget {
-  const SubscriptionFilters({Key? key}) : super(key: key);
+  const SubscriptionFilters({super.key});
 
   @override
   State<SubscriptionFilters> createState() => _SubscriptionFiltersState();

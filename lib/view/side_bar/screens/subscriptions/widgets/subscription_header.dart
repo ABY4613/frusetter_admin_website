@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'add_subscription_dialog.dart';
 
 class SubscriptionHeader extends StatelessWidget {
-  const SubscriptionHeader({Key? key}) : super(key: key);
+  const SubscriptionHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

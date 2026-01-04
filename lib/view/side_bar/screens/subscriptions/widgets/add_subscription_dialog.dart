@@ -8,7 +8,7 @@ import '../../../../../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AddSubscriptionDialog extends StatefulWidget {
-  const AddSubscriptionDialog({Key? key}) : super(key: key);
+  const AddSubscriptionDialog({super.key});
 
   @override
   State<AddSubscriptionDialog> createState() => _AddSubscriptionDialogState();
@@ -317,7 +317,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
             }
 
             return DropdownButtonFormField<MealPlan>(
-              value: _selectedPlan,
+              initialValue: _selectedPlan,
               decoration: InputDecoration(
                 hintText: 'Select a plan',
                 hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -390,7 +390,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedStatus,
+          initialValue: _selectedStatus,
           decoration: InputDecoration(
             hintText: 'Select status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -449,7 +449,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedPaymentStatus,
+          initialValue: _selectedPaymentStatus,
           decoration: InputDecoration(
             hintText: 'Select payment status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),

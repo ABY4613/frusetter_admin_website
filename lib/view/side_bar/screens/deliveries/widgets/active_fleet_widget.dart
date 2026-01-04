@@ -6,7 +6,7 @@ import 'package:frusette_admin_operations_web_dashboard/model/delivery.dart';
 import 'package:intl/intl.dart';
 
 class ActiveFleetWidget extends StatelessWidget {
-  const ActiveFleetWidget({Key? key}) : super(key: key);
+  const ActiveFleetWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +67,7 @@ class ActiveFleetWidget extends StatelessWidget {
               // Rows
               ...DummyData.deliveries
                   .map((delivery) => _buildDeliveryRow(context, delivery))
-                  .toList(),
+                  ,
             ],
           );
 

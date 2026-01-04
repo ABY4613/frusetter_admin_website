@@ -6,7 +6,7 @@ import 'package:frusette_admin_operations_web_dashboard/controller/cutoff_contro
 import 'package:frusette_admin_operations_web_dashboard/model/cutoff_setting.dart';
 
 class CutoffSettingsScreen extends StatefulWidget {
-  const CutoffSettingsScreen({Key? key}) : super(key: key);
+  const CutoffSettingsScreen({super.key});
 
   @override
   State<CutoffSettingsScreen> createState() => _CutoffSettingsScreenState();

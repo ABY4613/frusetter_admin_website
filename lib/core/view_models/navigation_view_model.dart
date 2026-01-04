@@ -7,7 +7,8 @@ enum NavigationItem {
   deliveryFleet,
   financials,
   feedback,
-  cutoffSettings
+  cutoffSettings,
+  addonFood
 }
 
 class NavigationViewModel extends ChangeNotifier {

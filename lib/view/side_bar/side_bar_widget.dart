@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class SideBarWidget extends StatelessWidget {
-  const SideBarWidget({Key? key}) : super(key: key);
+  const SideBarWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +93,16 @@ class SideBarWidget extends StatelessWidget {
                           NavigationItem.cutoffSettings,
                       onTap: () => viewModel
                           .setNavigationItem(NavigationItem.cutoffSettings),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildNavItem(
+                      icon: Icons.add_shopping_cart, // Add-on Food
+                      label: 'Add-on Food',
+                      item: NavigationItem.addonFood,
+                      isSelected:
+                          viewModel.selectedItem == NavigationItem.addonFood,
+                      onTap: () =>
+                          viewModel.setNavigationItem(NavigationItem.addonFood),
                     ),
                   ],
                 );
