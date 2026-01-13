@@ -97,7 +97,7 @@ class MainLayoutScreen extends StatelessWidget {
 class _ScreenLoader extends StatefulWidget {
   final NavigationItem selectedItem;
 
-  const _ScreenLoader({super.key, required this.selectedItem});
+  const _ScreenLoader({required this.selectedItem});
 
   @override
   State<_ScreenLoader> createState() => _ScreenLoaderState();
