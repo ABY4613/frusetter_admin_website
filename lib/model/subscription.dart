@@ -62,18 +62,18 @@ class SubscriptionPlan {
 
   factory SubscriptionPlan.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlan(
-      id: json['ID'] ?? '',
-      name: json['Name'] ?? '',
-      description: json['Description'] ?? '',
-      durationDays: json['DurationDays'] ?? 0,
-      mealsPerDay: json['MealsPerDay'] ?? 0,
-      mealTypes: (json['MealTypes'] as List<dynamic>?)
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      durationDays: json['duration_days'] ?? 0,
+      mealsPerDay: json['meals_per_day'] ?? 0,
+      mealTypes: (json['meal_types'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      price: (json['Price'] ?? 0).toDouble(),
-      isActive: json['IsActive'] ?? false,
-      createdAt: DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now(),
+      price: (json['price'] ?? 0).toDouble(),
+      isActive: json['is_active'] ?? false,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
     );
   }
 

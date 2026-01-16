@@ -1028,9 +1028,13 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
 
   // For monthly plans - 4 weeks of data
   final List<String> _weeks = ['week1', 'week2', 'week3', 'week4'];
-  final Map<String, Map<String, Map<String, Map<String, String>>>> _monthlyMenuData =
-      {};
+  final Map<String, Map<String, Map<String, Map<String, String>>>>
+      _monthlyMenuData = {};
   String _selectedWeek = 'week1';
+
+  // Copy/Paste functionality
+  Map<String, Map<String, Map<String, String>>>? _copiedWeekData;
+  String? _copiedFromWeek;
 
   String? _expandedDay;
   bool _isSubmitting = false;
@@ -1138,6 +1142,148 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
               dayMeals.dinner!.description;
         }
       }
+    }
+  }
+
+  void _copyWeek(String weekKey) {
+    try {
+      // Create a complete deep copy of the week data
+      final sourceWeekData = _monthlyMenuData[weekKey];
+
+      if (sourceWeekData == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error: Week data not found'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      // Create a brand new map structure
+      _copiedWeekData = <String, Map<String, Map<String, String>>>{};
+
+      for (var day in _weekDays) {
+        final dayData = sourceWeekData[day];
+        if (dayData != null) {
+          _copiedWeekData![day] = {
+            'breakfast': {
+              'name': dayData['breakfast']?['name'] ?? '',
+              'description': dayData['breakfast']?['description'] ?? '',
+            },
+            'lunch': {
+              'name': dayData['lunch']?['name'] ?? '',
+              'description': dayData['lunch']?['description'] ?? '',
+            },
+            'dinner': {
+              'name': dayData['dinner']?['name'] ?? '',
+              'description': dayData['dinner']?['description'] ?? '',
+            },
+          };
+        }
+      }
+
+      setState(() {
+        _copiedFromWeek = weekKey;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                  'Week ${weekKey.replaceAll('week', '')} copied successfully!'),
+            ],
+          ),
+          backgroundColor: const Color(0xFF8AC53D),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error copying week: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _pasteWeek(String targetWeekKey) {
+    if (_copiedWeekData == null || _copiedFromWeek == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Text('No week data copied. Please copy a week first.'),
+            ],
+          ),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    try {
+      setState(() {
+        // Create a complete new copy for the target week
+        for (var day in _weekDays) {
+          final copiedDayData = _copiedWeekData![day];
+
+          if (copiedDayData != null &&
+              _monthlyMenuData[targetWeekKey] != null) {
+            // Create new map instances to ensure proper state update
+            _monthlyMenuData[targetWeekKey]![day] = {
+              'breakfast': {
+                'name': copiedDayData['breakfast']?['name'] ?? '',
+                'description': copiedDayData['breakfast']?['description'] ?? '',
+              },
+              'lunch': {
+                'name': copiedDayData['lunch']?['name'] ?? '',
+                'description': copiedDayData['lunch']?['description'] ?? '',
+              },
+              'dinner': {
+                'name': copiedDayData['dinner']?['name'] ?? '',
+                'description': copiedDayData['dinner']?['description'] ?? '',
+              },
+            };
+          }
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Week ${_copiedFromWeek!.replaceAll('week', '')} pasted to Week ${targetWeekKey.replaceAll('week', '')} successfully!',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF8AC53D),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error pasting week: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -1585,14 +1731,12 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
                       ],
 
                       // Day Cards
-                      ..._weekDays
-                          .map((day) => _buildDayCard(
-                                day,
-                                weekKey: _selectedPlanType == 'monthly'
-                                    ? _selectedWeek
-                                    : null,
-                              ))
-                          ,
+                      ..._weekDays.map((day) => _buildDayCard(
+                            day,
+                            weekKey: _selectedPlanType == 'monthly'
+                                ? _selectedWeek
+                                : null,
+                          )),
                     ],
                   ),
                 ),
@@ -1784,76 +1928,183 @@ class _CreatePlanDialogState extends State<CreatePlanDialog> {
   }
 
   Widget _buildWeekTabs() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: _weeks.map((week) {
-          final isSelected = _selectedWeek == week;
-          final weekNumber = int.parse(week.replaceAll('week', ''));
-          final weekData = _monthlyMenuData[week]!;
-          final hasContent = weekData.values.any((dayData) => dayData.values
-              .any((meal) =>
-                  meal['name']!.isNotEmpty || meal['description']!.isNotEmpty));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Week selector tabs
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: _weeks.map((week) {
+              final isSelected = _selectedWeek == week;
+              final weekNumber = int.parse(week.replaceAll('week', ''));
+              final weekData = _monthlyMenuData[week]!;
+              final hasContent = weekData.values.any((dayData) => dayData.values
+                  .any((meal) =>
+                      meal['name']!.isNotEmpty ||
+                      meal['description']!.isNotEmpty));
 
-          return Expanded(
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _selectedWeek = week;
-                  _expandedDay =
-                      null; // Reset expanded day when switching weeks
-                });
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+              return Expanded(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedWeek = week;
+                      _expandedDay =
+                          null; // Reset expanded day when switching weeks
+                    });
+                  },
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Week $weekNumber',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? Colors.black87
+                                : Colors.grey.shade600,
                           ),
-                        ]
-                      : null,
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: hasContent
+                                ? const Color(0xFF8AC53D)
+                                : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Week $weekNumber',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color:
-                            isSelected ? Colors.black87 : Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: hasContent
-                            ? const Color(0xFF8AC53D)
-                            : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
+              );
+            }).toList(),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Copy/Paste buttons
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _copyWeek(_selectedWeek),
+                icon: const Icon(Icons.content_copy, size: 18),
+                label: Text(
+                  'Copy Week ${_selectedWeek.replaceAll('week', '')}',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF8AC53D),
+                  side: BorderSide(
+                      color: const Color(0xFF8AC53D).withOpacity(0.5)),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
-          );
-        }).toList(),
-      ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _copiedWeekData != null
+                    ? () => _pasteWeek(_selectedWeek)
+                    : null,
+                icon: const Icon(Icons.content_paste, size: 18),
+                label: Text(
+                  _copiedWeekData != null
+                      ? 'Paste to Week ${_selectedWeek.replaceAll('week', '')}'
+                      : 'No Week Copied',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _copiedWeekData != null
+                      ? const Color(0xFF8AC53D)
+                      : Colors.grey.shade300,
+                  foregroundColor: _copiedWeekData != null
+                      ? Colors.white
+                      : Colors.grey.shade500,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // Info text about copied week
+        if (_copiedWeekData != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8AC53D).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFF8AC53D).withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: Color(0xFF65902D),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Week ${_copiedFromWeek!.replaceAll('week', '')} is ready to paste. Select any week and click "Paste" to copy all meals.',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: const Color(0xFF65902D),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
