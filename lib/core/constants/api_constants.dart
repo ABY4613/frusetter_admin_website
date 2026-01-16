@@ -1,6 +1,6 @@
 class ApiConstants {
   // Base URL
-  static const String baseUrl = 'https://frusette-backend-ym62.onrender.com';
+  static const String baseUrl = 'api.frusette.com';
   // static const String baseUrl = 'http://10.0.2.2:3000'; // For Android Emulator
   // static const String baseUrl = 'http://localhost:3000'; // For iOS Simulator / Web
 
