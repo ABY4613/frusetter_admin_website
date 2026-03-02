@@ -654,6 +654,11 @@ class SubscriptionTable extends StatelessWidget {
                     DateFormat('MMM d, yyyy').format(sub.startDate)),
                 _buildDetailRow(
                     "End Date", DateFormat('MMM d, yyyy').format(sub.endDate)),
+                _buildDetailRow(
+                    "Preferences",
+                    sub.preferences?.isNotEmpty == true
+                        ? sub.preferences!
+                        : "None"),
                 _buildDetailRow("Paused Days", "${sub.pausedDays} days"),
                 _buildDetailRow("Created",
                     DateFormat('MMM d, yyyy HH:mm').format(sub.createdAt)),

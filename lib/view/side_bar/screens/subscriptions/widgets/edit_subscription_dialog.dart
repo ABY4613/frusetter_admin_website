@@ -27,6 +27,8 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
   late TextEditingController _amountController;
 
   late DateTime _selectedDate;
+  late DateTime _endDate;
+  late TextEditingController _prefsController;
 
   // Selected plan from dropdown
   MealPlan? _selectedPlan;
@@ -61,8 +63,27 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         text: widget.subscription.totalAmount.toStringAsFixed(2));
 
     _selectedDate = widget.subscription.startDate;
+    _endDate = widget.subscription.endDate;
+    _prefsController =
+        TextEditingController(text: widget.subscription.preferences ?? '[]');
     _selectedStatus = widget.subscription.status.name;
     _selectedPaymentStatus = widget.subscription.paymentStatus;
+
+    // Always default to initial proxy version of current plan so it never shows placeholder
+    final subPlan = widget.subscription.plan;
+    _selectedPlan = MealPlan(
+      id: widget.subscription.planId.isNotEmpty
+          ? widget.subscription.planId
+          : subPlan.id,
+      name:
+          subPlan.name.isNotEmpty ? subPlan.name : widget.subscription.planName,
+      description: subPlan.description,
+      durationDays: subPlan.durationDays,
+      mealsPerDay: subPlan.mealsPerDay,
+      mealTypes: subPlan.mealTypes,
+      price:
+          subPlan.price > 0 ? subPlan.price : widget.subscription.totalAmount,
+    );
 
     // Fetch plans when dialog opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -72,8 +93,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         // Try to find the matching plan
         final plans =
             Provider.of<MealsController>(context, listen: false).plans;
-        final matchingPlan =
-            plans.where((p) => p.id == widget.subscription.plan.id).toList();
+        final matchingPlan = plans.where((p) => p == _selectedPlan).toList();
         if (matchingPlan.isNotEmpty) {
           setState(() {
             _selectedPlan = matchingPlan.first;
@@ -90,6 +110,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
     _passwordController.dispose();
     _fullNameController.dispose();
     _amountController.dispose();
+    _prefsController.dispose();
     super.dispose();
   }
 
@@ -178,6 +199,12 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
                 }),
                 const SizedBox(height: 16),
 
+                // End Date
+                _buildDateField("End Date", _endDate, (date) {
+                  setState(() => _endDate = date);
+                }),
+                const SizedBox(height: 16),
+
                 // Total Amount
                 _buildTextField(
                   controller: _amountController,
@@ -193,6 +220,16 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
 
                 // Payment Status Dropdown
                 _buildPaymentStatusDropdown(),
+                const SizedBox(height: 16),
+
+                // Preferences (JSON/Array)
+                _buildTextField(
+                  controller: _prefsController,
+                  label: 'Preferences (e.g. ["allergy"])',
+                  hint: '["peanut", "dairy"]',
+                  maxLines: 3,
+                  isRequired: false,
+                ),
 
                 const SizedBox(height: 32),
 
@@ -326,7 +363,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
             }
 
             return DropdownButtonFormField<MealPlan>(
-              initialValue: _selectedPlan,
+              value: _selectedPlan,
               decoration: InputDecoration(
                 hintText: 'Select a plan',
                 hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -349,16 +386,28 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
               ),
               isExpanded: true,
               icon: const Icon(Icons.keyboard_arrow_down),
-              items: plans.map((plan) {
-                return DropdownMenuItem<MealPlan>(
-                  value: plan,
-                  child: Text(
-                    '${plan.name} (${plan.durationDays} days - ₹${plan.price.toStringAsFixed(0)})',
-                    style: GoogleFonts.inter(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
+              items: [
+                if (_selectedPlan != null &&
+                    !plans.any((p) => p == _selectedPlan))
+                  DropdownMenuItem<MealPlan>(
+                    value: _selectedPlan,
+                    child: Text(
+                      '${_selectedPlan!.name} (${_selectedPlan!.durationDays} days - ₹${_selectedPlan!.price.toStringAsFixed(0)})',
+                      style: GoogleFonts.inter(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                );
-              }).toList(),
+                ...plans.map((plan) {
+                  return DropdownMenuItem<MealPlan>(
+                    value: plan,
+                    child: Text(
+                      '${plan.name} (${plan.durationDays} days - ₹${plan.price.toStringAsFixed(0)})',
+                      style: GoogleFonts.inter(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+              ],
               onChanged: (MealPlan? newValue) {
                 setState(() {
                   _selectedPlan = newValue;
@@ -396,7 +445,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: _selectedStatus,
+          value: _selectedStatus,
           decoration: InputDecoration(
             hintText: 'Select status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -455,7 +504,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: _selectedPaymentStatus,
+          value: _selectedPaymentStatus,
           decoration: InputDecoration(
             hintText: 'Select payment status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -514,7 +563,9 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         fullName: _fullNameController.text.trim(),
         planId: _selectedPlan?.id,
         startDate: _selectedDate,
+        endDate: _endDate,
         totalAmount: double.tryParse(_amountController.text) ?? 0.0,
+        preferences: _prefsController.text.trim(),
         status: _selectedStatus,
         paymentStatus: _selectedPaymentStatus,
       );

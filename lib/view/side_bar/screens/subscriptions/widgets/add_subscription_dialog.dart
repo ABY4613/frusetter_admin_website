@@ -22,7 +22,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
   final _amountController = TextEditingController();
-  final _prefsController = TextEditingController(text: '{}');
+  final _prefsController = TextEditingController(text: '[]');
 
   DateTime _selectedDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
@@ -177,12 +177,13 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
                 _buildPaymentStatusDropdown(),
                 const SizedBox(height: 16),
 
-                // Preferences (JSON)
+                // Preferences (JSON/Array)
                 _buildTextField(
                   controller: _prefsController,
-                  label: 'Preferences (JSON)',
-                  hint: '{}',
+                  label: 'Preferences (e.g. ["allergy"])',
+                  hint: '["peanut", "dairy"]',
                   maxLines: 3,
+                  isRequired: false,
                 ),
 
                 const SizedBox(height: 32),
@@ -317,7 +318,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
             }
 
             return DropdownButtonFormField<MealPlan>(
-              initialValue: _selectedPlan,
+              value: _selectedPlan,
               decoration: InputDecoration(
                 hintText: 'Select a plan',
                 hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -390,7 +391,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: _selectedStatus,
+          value: _selectedStatus,
           decoration: InputDecoration(
             hintText: 'Select status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -449,7 +450,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: _selectedPaymentStatus,
+          value: _selectedPaymentStatus,
           decoration: InputDecoration(
             hintText: 'Select payment status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -549,6 +550,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
     int maxLines = 1,
     TextInputType? keyboardType,
     bool isPassword = false,
+    bool isRequired = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,7 +591,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
             ),
           ),
           validator: (value) {
-            if (value == null || value.isEmpty) {
+            if (isRequired && (value == null || value.isEmpty)) {
               return 'This field is required';
             }
             return null;

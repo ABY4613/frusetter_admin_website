@@ -514,4 +514,15 @@ class MealPlan {
   int get totalExpectedDays {
     return isMonthlyPlan ? 28 : 7;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MealPlan &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          id != null;
+
+  @override
+  int get hashCode => id?.hashCode ?? super.hashCode;
 }

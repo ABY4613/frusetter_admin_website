@@ -293,7 +293,9 @@ class SubscriptionController with ChangeNotifier {
     String? fullName,
     String? planId,
     DateTime? startDate,
+    DateTime? endDate,
     double? totalAmount,
+    String? preferences,
     String? status,
     String? paymentStatus,
   }) async {
@@ -321,7 +323,13 @@ class SubscriptionController with ChangeNotifier {
         body["start_date"] =
             utcDate.toIso8601String().replaceFirst(RegExp(r'\.\d{3}'), '');
       }
+      if (endDate != null) {
+        final utcEndDate = endDate.toUtc();
+        body["end_date"] =
+            utcEndDate.toIso8601String().replaceFirst(RegExp(r'\.\d{3}'), '');
+      }
       if (totalAmount != null) body["total_amount"] = totalAmount;
+      if (preferences != null) body["preferences"] = preferences;
       if (status != null) body["status"] = status;
       if (paymentStatus != null) body["payment_status"] = paymentStatus;
 
@@ -361,9 +369,28 @@ class SubscriptionController with ChangeNotifier {
   /// Toggle subscription status between active and paused
   Future<bool> toggleSubscriptionStatus(
       String subscriptionId, String newStatus) async {
-    return await updateSubscription(
-      subscriptionId: subscriptionId,
-      status: newStatus,
-    );
+    try {
+      final existingSub = _allSubscriptions.firstWhere(
+        (s) => s.id == subscriptionId,
+      );
+
+      return await updateSubscription(
+        subscriptionId: subscriptionId,
+        email: existingSub.userEmail,
+        phone: existingSub.user.phone,
+        fullName: existingSub.userName,
+        planId: existingSub.planId,
+        startDate: existingSub.startDate,
+        endDate: existingSub.adjustedEndDate,
+        totalAmount: existingSub.totalAmount,
+        preferences: existingSub.preferences ?? '[]',
+        status: newStatus,
+        paymentStatus: existingSub.paymentStatus,
+      );
+    } catch (e) {
+      _errorMessage = 'Subscription not found';
+      notifyListeners();
+      return false;
+    }
   }
 }
