@@ -373,7 +373,7 @@ class SubscriptionTable extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '₹${sub.totalAmount.toStringAsFixed(0)}',
+                    'Plan: ₹${sub.plan.price.toStringAsFixed(0)}',
                     style: GoogleFonts.inter(
                       color: AppColors.black,
                       fontWeight: FontWeight.w600,
@@ -381,13 +381,40 @@ class SubscriptionTable extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    sub.paymentStatus.toUpperCase(),
+                    'Paid: ₹${sub.amountPaid.toStringAsFixed(0)}',
                     style: GoogleFonts.inter(
-                      color: sub.paymentStatus == 'paid'
-                          ? AppColors.accentGreen
-                          : AppColors.accentOrange,
+                      color: AppColors.accentGreen,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    'Pending: ₹${sub.pendingAmount.toStringAsFixed(0)}',
+                    style: GoogleFonts.inter(
+                      color: AppColors.accentOrange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: sub.paymentStatus == 'paid'
+                          ? AppColors.accentGreen.withOpacity(0.1)
+                          : AppColors.accentOrange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      sub.paymentStatus.toUpperCase(),
+                      style: GoogleFonts.inter(
+                        color: sub.paymentStatus == 'paid'
+                            ? AppColors.accentGreen
+                            : AppColors.accentOrange,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -647,9 +674,11 @@ class SubscriptionTable extends StatelessWidget {
                 _buildDetailRow(
                     "Payment Status", sub.paymentStatus.toUpperCase()),
                 _buildDetailRow(
-                    "Total Amount", "₹${sub.totalAmount.toStringAsFixed(0)}"),
+                    "Plan Amount", "₹${sub.plan.price.toStringAsFixed(0)}"),
                 _buildDetailRow(
                     "Amount Paid", "₹${sub.amountPaid.toStringAsFixed(0)}"),
+                _buildDetailRow("Pending Amount",
+                    "₹${sub.pendingAmount.toStringAsFixed(0)}"),
                 _buildDetailRow("Start Date",
                     DateFormat('MMM d, yyyy').format(sub.startDate)),
                 _buildDetailRow(

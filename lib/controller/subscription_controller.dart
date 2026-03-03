@@ -210,10 +210,13 @@ class SubscriptionController with ChangeNotifier {
     required String phone,
     required String password,
     required String fullName,
+    String? address,
     required String planId,
     required DateTime startDate,
     required DateTime endDate,
+    required double amountPaid,
     required double totalAmount,
+    required double pendingAmount,
     required String preferences,
     required String status,
     required String paymentStatus,
@@ -245,10 +248,15 @@ class SubscriptionController with ChangeNotifier {
         "phone": phone,
         "password": password,
         "full_name": fullName,
+        if (address != null && address.isNotEmpty) "address": address,
         "plan_id": planId,
         "start_date": formatDateToRFC3339(startDate),
         "end_date": formatDateToRFC3339(endDate),
-        "total_amount": totalAmount,
+        "amount_paid": amountPaid,
+        "total_amount":
+            totalAmount, // This could be refactored eventually if backend drops this, but for now we'll match it
+        "pending_amount":
+            pendingAmount, // In creation its normally zero until calculations are done, based on context
         "preferences": preferences,
         "status": status,
         "payment_status": paymentStatus,
@@ -291,10 +299,13 @@ class SubscriptionController with ChangeNotifier {
     String? phone,
     String? password,
     String? fullName,
+    String? address,
     String? planId,
     DateTime? startDate,
     DateTime? endDate,
-    double? totalAmount,
+    double? amountPaid,
+    double? totalAmount, // For fallback
+    double? pendingAmount,
     String? preferences,
     String? status,
     String? paymentStatus,
@@ -317,6 +328,7 @@ class SubscriptionController with ChangeNotifier {
       if (phone != null) body["phone"] = phone;
       if (password != null && password.isNotEmpty) body["password"] = password;
       if (fullName != null) body["full_name"] = fullName;
+      if (address != null) body["address"] = address;
       if (planId != null) body["plan_id"] = planId;
       if (startDate != null) {
         final utcDate = startDate.toUtc();
@@ -328,7 +340,9 @@ class SubscriptionController with ChangeNotifier {
         body["end_date"] =
             utcEndDate.toIso8601String().replaceFirst(RegExp(r'\.\d{3}'), '');
       }
-      if (totalAmount != null) body["total_amount"] = totalAmount;
+      if (amountPaid != null) body["amount_paid"] = amountPaid;
+      if (totalAmount != null) body["total_amount"] = totalAmount; // Legacy
+      if (pendingAmount != null) body["pending_amount"] = pendingAmount;
       if (preferences != null) body["preferences"] = preferences;
       if (status != null) body["status"] = status;
       if (paymentStatus != null) body["payment_status"] = paymentStatus;
@@ -382,6 +396,7 @@ class SubscriptionController with ChangeNotifier {
         planId: existingSub.planId,
         startDate: existingSub.startDate,
         endDate: existingSub.adjustedEndDate,
+        amountPaid: existingSub.amountPaid,
         totalAmount: existingSub.totalAmount,
         preferences: existingSub.preferences ?? '[]',
         status: newStatus,

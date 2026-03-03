@@ -24,7 +24,9 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
   late TextEditingController _phoneController;
   late TextEditingController _passwordController;
   late TextEditingController _fullNameController;
-  late TextEditingController _amountController;
+  late TextEditingController _addressController;
+  late TextEditingController _amountPaidController;
+  late TextEditingController _pendingAmountController;
 
   late DateTime _selectedDate;
   late DateTime _endDate;
@@ -42,13 +44,17 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
     'active',
     'paused',
     'expired',
-    'cancelled'
+    'cancelled',
+    'pending'
   ];
   final List<String> _paymentStatusOptions = ['pending', 'paid', 'overdue'];
 
   @override
   void initState() {
     super.initState();
+
+    _amountPaidController = TextEditingController();
+    _amountPaidController.addListener(_calculatePendingAmount);
 
     // Initialize controllers with existing subscription data
     _emailController =
@@ -59,15 +65,24 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         TextEditingController(); // Password is empty by default
     _fullNameController =
         TextEditingController(text: widget.subscription.userName);
-    _amountController = TextEditingController(
-        text: widget.subscription.totalAmount.toStringAsFixed(2));
+    _addressController =
+        TextEditingController(); // Address isn't in model readily
+    _amountPaidController.text =
+        widget.subscription.amountPaid.toStringAsFixed(2);
+    _pendingAmountController = TextEditingController(
+        text: widget.subscription.pendingAmount.toStringAsFixed(2));
 
     _selectedDate = widget.subscription.startDate;
     _endDate = widget.subscription.endDate;
     _prefsController =
         TextEditingController(text: widget.subscription.preferences ?? '[]');
     _selectedStatus = widget.subscription.status.name;
-    _selectedPaymentStatus = widget.subscription.paymentStatus;
+
+    // Normalize payment status
+    final paymentStatusRaw = widget.subscription.paymentStatus.toLowerCase();
+    _selectedPaymentStatus = _paymentStatusOptions.contains(paymentStatusRaw)
+        ? paymentStatusRaw
+        : _paymentStatusOptions.first;
 
     // Always default to initial proxy version of current plan so it never shows placeholder
     final subPlan = widget.subscription.plan;
@@ -93,7 +108,8 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         // Try to find the matching plan
         final plans =
             Provider.of<MealsController>(context, listen: false).plans;
-        final matchingPlan = plans.where((p) => p == _selectedPlan).toList();
+        final matchingPlan =
+            plans.where((p) => p.id == _selectedPlan?.id).toList();
         if (matchingPlan.isNotEmpty) {
           setState(() {
             _selectedPlan = matchingPlan.first;
@@ -103,13 +119,25 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
     });
   }
 
+  void _calculatePendingAmount() {
+    if (_selectedPlan != null) {
+      final planPrice = _selectedPlan!.price;
+      final amountPaid = double.tryParse(_amountPaidController.text) ?? 0.0;
+      final pendingAmount = planPrice - amountPaid;
+      _pendingAmountController.text = pendingAmount.toStringAsFixed(2);
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
     _fullNameController.dispose();
-    _amountController.dispose();
+    _addressController.dispose();
+    _amountPaidController.removeListener(_calculatePendingAmount);
+    _amountPaidController.dispose();
+    _pendingAmountController.dispose();
     _prefsController.dispose();
     super.dispose();
   }
@@ -161,6 +189,16 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
                 ),
                 const SizedBox(height: 16),
 
+                // Address Field
+                _buildTextField(
+                  controller: _addressController,
+                  label: 'Address',
+                  hint: 'Enter full address',
+                  isRequired: false,
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+
                 // Email Field
                 _buildTextField(
                   controller: _emailController,
@@ -205,12 +243,29 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
                 }),
                 const SizedBox(height: 16),
 
-                // Total Amount
-                _buildTextField(
-                  controller: _amountController,
-                  label: 'Total Amount',
-                  hint: '5000.00',
-                  keyboardType: TextInputType.number,
+                // Amount Paid and Pending Amount
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _amountPaidController,
+                        label: 'Amount Paid',
+                        hint: '1000.00',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _pendingAmountController,
+                        label: 'Pending Amount (Total)',
+                        hint: 'Automatically calculated',
+                        keyboardType: TextInputType.number,
+                        readOnly: true,
+                        isRequired: false,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
@@ -386,18 +441,20 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
               ),
               isExpanded: true,
               icon: const Icon(Icons.keyboard_arrow_down),
-              items: [
-                if (_selectedPlan != null &&
-                    !plans.any((p) => p == _selectedPlan))
-                  DropdownMenuItem<MealPlan>(
-                    value: _selectedPlan,
-                    child: Text(
-                      '${_selectedPlan!.name} (${_selectedPlan!.durationDays} days - ₹${_selectedPlan!.price.toStringAsFixed(0)})',
-                      style: GoogleFonts.inter(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ...plans.map((plan) {
+              items: (() {
+                final Map<String, MealPlan> uniquePlans = {};
+                if (_selectedPlan != null) {
+                  final id =
+                      _selectedPlan!.id ?? 'proxy_${_selectedPlan.hashCode}';
+                  uniquePlans[id] = _selectedPlan!;
+                }
+                for (var plan in plans) {
+                  final id = plan.id ?? 'plan_${plan.hashCode}';
+                  if (!uniquePlans.containsKey(id)) {
+                    uniquePlans[id] = plan;
+                  }
+                }
+                return uniquePlans.values.map((plan) {
                   return DropdownMenuItem<MealPlan>(
                     value: plan,
                     child: Text(
@@ -406,14 +463,14 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   );
-                }).toList(),
-              ],
+                }).toList();
+              })(),
               onChanged: (MealPlan? newValue) {
                 setState(() {
                   _selectedPlan = newValue;
                   // Auto-fill amount with the plan price
                   if (newValue != null) {
-                    _amountController.text = newValue.price.toStringAsFixed(2);
+                    _calculatePendingAmount();
                   }
                 });
               },
@@ -561,10 +618,14 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
             ? _passwordController.text.trim()
             : null,
         fullName: _fullNameController.text.trim(),
+        address: _addressController.text.trim().isNotEmpty
+            ? _addressController.text.trim()
+            : null,
         planId: _selectedPlan?.id,
         startDate: _selectedDate,
         endDate: _endDate,
-        totalAmount: double.tryParse(_amountController.text) ?? 0.0,
+        amountPaid: double.tryParse(_amountPaidController.text) ?? 0.0,
+        pendingAmount: double.tryParse(_pendingAmountController.text) ?? 0.0,
         preferences: _prefsController.text.trim(),
         status: _selectedStatus,
         paymentStatus: _selectedPaymentStatus,
@@ -598,6 +659,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
     TextInputType? keyboardType,
     bool isPassword = false,
     bool isRequired = true,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,7 +678,10 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
           maxLines: maxLines,
           keyboardType: keyboardType,
           obscureText: isPassword,
-          style: GoogleFonts.inter(fontSize: 14),
+          readOnly: readOnly,
+          style: GoogleFonts.inter(
+              fontSize: 14,
+              color: readOnly ? Colors.grey.shade700 : AppColors.black),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),

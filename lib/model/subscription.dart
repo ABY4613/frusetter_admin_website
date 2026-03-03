@@ -97,6 +97,7 @@ class Subscription {
   final String paymentStatus;
   final double totalAmount;
   final double amountPaid;
+  final double pendingAmount;
   final int pausedDays;
   final String? preferences;
   final DateTime createdAt;
@@ -115,6 +116,7 @@ class Subscription {
     required this.paymentStatus,
     required this.totalAmount,
     required this.amountPaid,
+    required this.pendingAmount,
     required this.pausedDays,
     this.preferences,
     required this.createdAt,
@@ -125,24 +127,35 @@ class Subscription {
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
-      id: json['ID'] ?? '',
-      userId: json['UserID'] ?? '',
-      planId: json['PlanID'] ?? '',
-      startDate: DateTime.tryParse(json['StartDate'] ?? '') ?? DateTime.now(),
-      originalEndDate:
-          DateTime.tryParse(json['OriginalEndDate'] ?? '') ?? DateTime.now(),
-      adjustedEndDate:
-          DateTime.tryParse(json['AdjustedEndDate'] ?? '') ?? DateTime.now(),
-      status: _parseStatus(json['Status']),
-      paymentStatus: json['PaymentStatus'] ?? '',
-      totalAmount: (json['TotalAmount'] ?? 0).toDouble(),
-      amountPaid: (json['AmountPaid'] ?? 0).toDouble(),
-      pausedDays: json['PausedDays'] ?? 0,
-      preferences: json['Preferences']?.toString(),
-      createdAt: DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['UpdatedAt'] ?? '') ?? DateTime.now(),
-      user: SubscriptionUser.fromJson(json['user'] ?? {}),
-      plan: SubscriptionPlan.fromJson(json['plan'] ?? {}),
+      id: json['ID'] ?? json['id'] ?? '',
+      userId: json['UserID'] ?? json['user_id'] ?? '',
+      planId: json['PlanID'] ?? json['plan_id'] ?? '',
+      startDate:
+          DateTime.tryParse(json['StartDate'] ?? json['start_date'] ?? '') ??
+              DateTime.now(),
+      originalEndDate: DateTime.tryParse(
+              json['OriginalEndDate'] ?? json['original_end_date'] ?? '') ??
+          DateTime.now(),
+      adjustedEndDate: DateTime.tryParse(
+              json['AdjustedEndDate'] ?? json['adjusted_end_date'] ?? '') ??
+          DateTime.now(),
+      status: _parseStatus(json['Status'] ?? json['status']),
+      paymentStatus: json['PaymentStatus'] ?? json['payment_status'] ?? '',
+      totalAmount:
+          (json['TotalAmount'] ?? json['total_amount'] ?? 0).toDouble(),
+      amountPaid: (json['AmountPaid'] ?? json['amount_paid'] ?? 0).toDouble(),
+      pendingAmount: (json['pending_amount'] ?? json['total_amount'] ?? 0)
+          .toDouble(), // some endpoints might only send total_amount
+      pausedDays: json['PausedDays'] ?? json['paused_days'] ?? 0,
+      preferences: (json['Preferences'] ?? json['preferences'])?.toString(),
+      createdAt:
+          DateTime.tryParse(json['CreatedAt'] ?? json['created_at'] ?? '') ??
+              DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['UpdatedAt'] ?? json['updated_at'] ?? '') ??
+              DateTime.now(),
+      user: SubscriptionUser.fromJson(json['user'] ?? json['User'] ?? {}),
+      plan: SubscriptionPlan.fromJson(json['plan'] ?? json['Plan'] ?? {}),
     );
   }
 

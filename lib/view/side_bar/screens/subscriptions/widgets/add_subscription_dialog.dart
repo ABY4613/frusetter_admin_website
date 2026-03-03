@@ -21,7 +21,9 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
-  final _amountController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _amountPaidController = TextEditingController(text: '0');
+  final _pendingAmountController = TextEditingController(text: '0');
   final _prefsController = TextEditingController(text: '[]');
 
   DateTime _selectedDate = DateTime.now();
@@ -39,17 +41,28 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
     'active',
     'paused',
     'expired',
-    'cancelled'
+    'cancelled',
+    'pending'
   ];
   final List<String> _paymentStatusOptions = ['pending', 'paid', 'overdue'];
 
   @override
   void initState() {
     super.initState();
+    _amountPaidController.addListener(_calculatePendingAmount);
     // Fetch plans when dialog opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<MealsController>(context, listen: false).fetchPlans();
     });
+  }
+
+  void _calculatePendingAmount() {
+    if (_selectedPlan != null) {
+      final planPrice = _selectedPlan!.price;
+      final amountPaid = double.tryParse(_amountPaidController.text) ?? 0.0;
+      final pendingAmount = planPrice - amountPaid;
+      _pendingAmountController.text = pendingAmount.toStringAsFixed(2);
+    }
   }
 
   @override
@@ -58,7 +71,10 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
     _phoneController.dispose();
     _passwordController.dispose();
     _fullNameController.dispose();
-    _amountController.dispose();
+    _addressController.dispose();
+    _amountPaidController.removeListener(_calculatePendingAmount);
+    _amountPaidController.dispose();
+    _pendingAmountController.dispose();
     _prefsController.dispose();
     super.dispose();
   }
@@ -137,6 +153,15 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
                 ),
                 const SizedBox(height: 16),
 
+                // Address Field
+                _buildTextField(
+                  controller: _addressController,
+                  label: 'Address',
+                  hint: 'Enter full address',
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+
                 // Plan ID Dropdown
                 _buildPlanDropdown(),
                 const SizedBox(height: 16),
@@ -160,12 +185,28 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                // Total Amount
-                _buildTextField(
-                  controller: _amountController,
-                  label: 'Total Amount',
-                  hint: '5000.00',
-                  keyboardType: TextInputType.number,
+                // Amount Paid and Pending Amount
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _amountPaidController,
+                        label: 'Amount Paid',
+                        hint: '1000.00',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildTextField(
+                        controller: _pendingAmountController,
+                        label: 'Pending Amount (Total)',
+                        hint: 'Automatically calculated',
+                        keyboardType: TextInputType.number,
+                        readOnly: true,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
@@ -341,22 +382,36 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
               ),
               isExpanded: true,
               icon: const Icon(Icons.keyboard_arrow_down),
-              items: plans.map((plan) {
-                return DropdownMenuItem<MealPlan>(
-                  value: plan,
-                  child: Text(
-                    '${plan.name} (${plan.durationDays} days - ₹${plan.price.toStringAsFixed(0)})',
-                    style: GoogleFonts.inter(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-              }).toList(),
+              items: (() {
+                final Map<String, MealPlan> uniquePlans = {};
+                if (_selectedPlan != null) {
+                  final id =
+                      _selectedPlan!.id ?? 'proxy_${_selectedPlan.hashCode}';
+                  uniquePlans[id] = _selectedPlan!;
+                }
+                for (var plan in plans) {
+                  final id = plan.id ?? 'plan_${plan.hashCode}';
+                  if (!uniquePlans.containsKey(id)) {
+                    uniquePlans[id] = plan;
+                  }
+                }
+                return uniquePlans.values.map((plan) {
+                  return DropdownMenuItem<MealPlan>(
+                    value: plan,
+                    child: Text(
+                      '${plan.name} (${plan.durationDays} days - ₹${plan.price.toStringAsFixed(0)})',
+                      style: GoogleFonts.inter(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList();
+              })(),
               onChanged: (MealPlan? newValue) {
                 setState(() {
                   _selectedPlan = newValue;
                   // Auto-fill amount with the plan price
                   if (newValue != null) {
-                    _amountController.text = newValue.price.toStringAsFixed(2);
+                    _calculatePendingAmount();
                     // Auto-set end date based on plan duration
                     _endDate = _selectedDate
                         .add(Duration(days: newValue.durationDays));
@@ -514,10 +569,13 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         phone: _phoneController.text.trim(),
         password: _passwordController.text.trim(),
         fullName: _fullNameController.text.trim(),
+        address: _addressController.text.trim(),
         planId: _selectedPlan!.id!,
         startDate: _selectedDate,
         endDate: _endDate,
-        totalAmount: double.tryParse(_amountController.text) ?? 0.0,
+        amountPaid: double.tryParse(_amountPaidController.text) ?? 0.0,
+        totalAmount: 0.0, // Backend might calculate or we provide dummy
+        pendingAmount: double.tryParse(_pendingAmountController.text) ?? 0.0,
         preferences: _prefsController.text.trim(),
         status: _selectedStatus,
         paymentStatus: _selectedPaymentStatus,
@@ -551,6 +609,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
     TextInputType? keyboardType,
     bool isPassword = false,
     bool isRequired = true,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,7 +628,10 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
           maxLines: maxLines,
           keyboardType: keyboardType,
           obscureText: isPassword,
-          style: GoogleFonts.inter(fontSize: 14),
+          readOnly: readOnly,
+          style: GoogleFonts.inter(
+              fontSize: 14,
+              color: readOnly ? Colors.grey.shade700 : AppColors.black),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
