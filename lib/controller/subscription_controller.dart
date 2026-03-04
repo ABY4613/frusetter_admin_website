@@ -253,10 +253,11 @@ class SubscriptionController with ChangeNotifier {
         "start_date": formatDateToRFC3339(startDate),
         "end_date": formatDateToRFC3339(endDate),
         "amount_paid": amountPaid,
-        "total_amount":
-            totalAmount, // This could be refactored eventually if backend drops this, but for now we'll match it
-        "pending_amount":
-            pendingAmount, // In creation its normally zero until calculations are done, based on context
+        "AmountPaid": amountPaid,
+        "total_amount": totalAmount,
+        "TotalAmount": totalAmount,
+        "pending_amount": pendingAmount,
+        "PendingAmount": pendingAmount,
         "preferences": preferences,
         "status": status,
         "payment_status": paymentStatus,
@@ -340,9 +341,18 @@ class SubscriptionController with ChangeNotifier {
         body["end_date"] =
             utcEndDate.toIso8601String().replaceFirst(RegExp(r'\.\d{3}'), '');
       }
-      if (amountPaid != null) body["amount_paid"] = amountPaid;
-      if (totalAmount != null) body["total_amount"] = totalAmount; // Legacy
-      if (pendingAmount != null) body["pending_amount"] = pendingAmount;
+      if (amountPaid != null) {
+        body["amount_paid"] = amountPaid;
+        body["AmountPaid"] = amountPaid;
+      }
+      if (totalAmount != null) {
+        body["total_amount"] = totalAmount;
+        body["TotalAmount"] = totalAmount;
+      }
+      if (pendingAmount != null) {
+        body["pending_amount"] = pendingAmount;
+        body["PendingAmount"] = pendingAmount;
+      }
       if (preferences != null) body["preferences"] = preferences;
       if (status != null) body["status"] = status;
       if (paymentStatus != null) body["payment_status"] = paymentStatus;

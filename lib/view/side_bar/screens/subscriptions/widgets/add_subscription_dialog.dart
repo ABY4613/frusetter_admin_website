@@ -574,7 +574,8 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         startDate: _selectedDate,
         endDate: _endDate,
         amountPaid: double.tryParse(_amountPaidController.text) ?? 0.0,
-        totalAmount: 0.0, // Backend might calculate or we provide dummy
+        totalAmount: _selectedPlan!
+            .price, // Send the actual plan price instead of 0.0 to pass validation
         pendingAmount: double.tryParse(_pendingAmountController.text) ?? 0.0,
         preferences: _prefsController.text.trim(),
         status: _selectedStatus,
