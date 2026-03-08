@@ -20,6 +20,7 @@ class SubscriptionController with ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  List<Subscription> get allSubscriptions => _allSubscriptions;
 
   /// Returns paginated subscriptions for display
   List<Subscription> get subscriptions {

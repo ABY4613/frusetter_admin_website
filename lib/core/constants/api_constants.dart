@@ -18,4 +18,7 @@ class ApiConstants {
       '$apiVersion/admin/payments/send-reminders';
   static const String adminCutoffSettings = '$apiVersion/admin/cutoff-settings';
   static const String adminAddons = '$apiVersion/admin/addons';
+  static const String adminDrivers = '$apiVersion/admin/drivers';
+  static const String adminDriverAssignments =
+      '$apiVersion/admin/driver-assignments';
 }

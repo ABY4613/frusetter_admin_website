@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import 'widgets/delivery_header.dart';
-import 'widgets/delivery_stats.dart';
-import 'widgets/active_fleet_widget.dart';
+import 'widgets/drivers_table_widget.dart';
 
 class DeliveriesScreen extends StatelessWidget {
   const DeliveriesScreen({super.key});
@@ -18,9 +17,7 @@ class DeliveriesScreen extends StatelessWidget {
           children: const [
             DeliveryHeader(),
             SizedBox(height: 32),
-            DeliveryStatsRow(),
-            SizedBox(height: 32),
-            ActiveFleetWidget(),
+            DriversTableWidget(),
           ],
         ),
       ),
