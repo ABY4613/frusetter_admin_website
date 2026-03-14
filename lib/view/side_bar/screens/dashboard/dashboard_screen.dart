@@ -3,6 +3,8 @@ import 'package:frusette_admin_operations_web_dashboard/core/theme/app_colors.da
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/dashboard/widgets/dashboard_cards.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../../../controller/dashboard_controller.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,9 +16,19 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   DateTime _selectedDate = DateTime.now();
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<DashboardController>(context, listen: false).fetchDailyDashboard();
+    });
+  }
+
   void _changeDate(int days) {
     setState(() {
       _selectedDate = _selectedDate.add(Duration(days: days));
+      Provider.of<DashboardController>(context, listen: false)
+          .fetchDailyDashboard(date: _selectedDate);
     });
   }
 
@@ -48,6 +60,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _selectedDate = picked;
       });
+      Provider.of<DashboardController>(context, listen: false)
+          .fetchDailyDashboard(date: _selectedDate);
     }
   }
 
@@ -151,16 +165,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 16),
                       const PendingPaymentsCard(),
                       const SizedBox(height: 16),
-                      const FeedbackCard(),
+                      const AddonsCard(),
                     ],
                   )
                 else
                   Column(
                     children: [
                       // Row 1
-                      SizedBox(
-                        height: 320, // Fixed height for alignment
+                      IntrinsicHeight(
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Expanded(
                               flex: 2,
@@ -181,9 +195,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 24),
                       // Row 2
-                      SizedBox(
-                        height: 320,
+                      IntrinsicHeight(
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Expanded(
                               flex: 2,
@@ -197,7 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(width: 24),
                             Expanded(
                               flex: 1,
-                              child: const FeedbackCard(),
+                              child: const AddonsCard(),
                             ),
                           ],
                         ),
