@@ -104,6 +104,16 @@ class SideBarWidget extends StatelessWidget {
                       onTap: () =>
                           viewModel.setNavigationItem(NavigationItem.addonFood),
                     ),
+                    const SizedBox(height: 8),
+                    _buildNavItem(
+                      icon: Icons.history, // System Logs
+                      label: 'System Logs',
+                      item: NavigationItem.adminLogs,
+                      isSelected:
+                          viewModel.selectedItem == NavigationItem.adminLogs,
+                      onTap: () =>
+                          viewModel.setNavigationItem(NavigationItem.adminLogs),
+                    ),
                   ],
                 );
               },

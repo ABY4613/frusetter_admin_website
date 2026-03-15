@@ -10,6 +10,7 @@ import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/fi
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/meals_planning/meals_planning_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/cutoff_settings/cutoff_settings_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/addon_food/addon_food_screen.dart';
+import 'package:frusette_admin_operations_web_dashboard/view/side_bar/screens/logs/admin_logs_screen.dart';
 import 'package:frusette_admin_operations_web_dashboard/widgets/frusette_loader.dart';
 import 'package:provider/provider.dart';
 import '../core/view_models/navigation_view_model.dart';
@@ -90,6 +91,8 @@ class MainLayoutScreen extends StatelessWidget {
         return 'Cutoff Settings';
       case NavigationItem.addonFood:
         return 'Add-on Food';
+      case NavigationItem.adminLogs:
+        return 'System Logs';
     }
   }
 }
@@ -163,6 +166,8 @@ class _ScreenLoaderState extends State<_ScreenLoader> {
         return const CutoffSettingsScreen();
       case NavigationItem.addonFood:
         return const AddonFoodScreen();
+      case NavigationItem.adminLogs:
+        return const AdminLogsScreen();
     }
   }
 }
