@@ -555,7 +555,10 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
             const SizedBox(width: 12),
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Implement export CSV functionality
+                controller.exportToCSV();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Exporting CSV...')),
+                );
               },
               icon: const Icon(Icons.download, size: 18),
               label: Text(

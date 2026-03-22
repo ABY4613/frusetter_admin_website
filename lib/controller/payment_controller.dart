@@ -5,6 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/api_constants.dart';
 import '../model/payment.dart';
 import '../model/reminder_response.dart';
+import 'package:intl/intl.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/utils/web_utils_stub.dart'
+    if (dart.library.html) 'package:frusette_admin_operations_web_dashboard/core/utils/web_utils_web.dart';
 
 class PaymentController with ChangeNotifier {
   bool _isLoading = false;
@@ -331,5 +334,60 @@ class PaymentController with ChangeNotifier {
     _reminderSuccessMessage = null;
     _lastReminderData = null;
     notifyListeners();
+  }
+
+  /// Export current filtered payments to CSV
+  void exportToCSV() {
+    if (_filteredPayments.isEmpty) return;
+
+    final List<String> headers = [
+      'Subscription ID',
+      'User ID',
+      'Customer Name',
+      'Email',
+      'Phone',
+      'Plan Name',
+      'Total Amount',
+      'Amount Paid',
+      'Balance',
+      'Payment Status',
+      'Subscription Status',
+      'Start Date',
+      'End Date',
+      'Created At'
+    ];
+
+    final List<List<String>> rows = _filteredPayments.map((p) => [
+      p.subscriptionId,
+      p.userId,
+      p.customerName,
+      p.customerEmail,
+      p.user.phone,
+      p.planName,
+      p.totalAmount.toString(),
+      p.amountPaid.toString(),
+      p.balanceAmount.toString(),
+      p.paymentStatusLabel,
+      p.subscriptionStatusLabel,
+      DateFormat('yyyy-MM-dd').format(p.startDate),
+      DateFormat('yyyy-MM-dd').format(p.endDate),
+      DateFormat('yyyy-MM-dd HH:mm:ss').format(p.createdAt),
+    ]).toList();
+
+    StringBuffer buffer = StringBuffer();
+    
+    // Add headers
+    buffer.writeln(headers.map((h) => '"${h.replaceAll('"', '""')}"').join(','));
+    
+    // Add data rows
+    for (var row in rows) {
+      buffer.writeln(row.map((field) => '"${field.replaceAll('"', '""')}"').join(','));
+    }
+
+    final String csvContent = buffer.toString();
+    final String fileName = 'payments_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+
+    // Use WebUtils to trigger download (web only, no-op on other platforms)
+    WebUtils.downloadCSV(csvContent, fileName);
   }
 }

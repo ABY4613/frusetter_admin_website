@@ -19,107 +19,110 @@ class SideBarWidget extends StatelessWidget {
         children: [
           _buildLogo(context),
           const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Consumer<NavigationViewModel>(
-              builder: (context, viewModel, child) {
-                return Column(
-                  children: [
-                    _buildNavItem(
-                      icon: Icons.dashboard,
-                      label: 'Dashboard',
-                      item: NavigationItem.dashboard,
-                      isSelected:
-                          viewModel.selectedItem == NavigationItem.dashboard,
-                      onTap: () =>
-                          viewModel.setNavigationItem(NavigationItem.dashboard),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.restaurant_menu, // Meals Planning
-                      label: 'Meals Planning',
-                      item: NavigationItem.mealsPlanning,
-                      isSelected: viewModel.selectedItem ==
-                          NavigationItem.mealsPlanning,
-                      onTap: () => viewModel
-                          .setNavigationItem(NavigationItem.mealsPlanning),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.people, // Subscriptions
-                      label: 'Subscriptions',
-                      item: NavigationItem.subscriptions,
-                      isSelected: viewModel.selectedItem ==
-                          NavigationItem.subscriptions,
-                      onTap: () => viewModel
-                          .setNavigationItem(NavigationItem.subscriptions),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.local_shipping, // Delivery Fleet
-                      label: 'Delivery Fleet',
-                      item: NavigationItem.deliveryFleet,
-                      isSelected: viewModel.selectedItem ==
-                          NavigationItem.deliveryFleet,
-                      onTap: () => viewModel
-                          .setNavigationItem(NavigationItem.deliveryFleet),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.attach_money, // Financials
-                      label: 'Payments & Billing',
-                      item: NavigationItem.financials,
-                      isSelected:
-                          viewModel.selectedItem == NavigationItem.financials,
-                      onTap: () => viewModel
-                          .setNavigationItem(NavigationItem.financials),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.chat_bubble_outline, // Feedback
-                      label: 'Feedback',
-                      item: NavigationItem.feedback,
-                      isSelected:
-                          viewModel.selectedItem == NavigationItem.feedback,
-                      onTap: () =>
-                          viewModel.setNavigationItem(NavigationItem.feedback),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.access_time_filled, // Cutoff Settings
-                      label: 'Cutoff Settings',
-                      item: NavigationItem.cutoffSettings,
-                      isSelected: viewModel.selectedItem ==
-                          NavigationItem.cutoffSettings,
-                      onTap: () => viewModel
-                          .setNavigationItem(NavigationItem.cutoffSettings),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.add_shopping_cart, // Add-on Food
-                      label: 'Add-on Food',
-                      item: NavigationItem.addonFood,
-                      isSelected:
-                          viewModel.selectedItem == NavigationItem.addonFood,
-                      onTap: () =>
-                          viewModel.setNavigationItem(NavigationItem.addonFood),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildNavItem(
-                      icon: Icons.history, // System Logs
-                      label: 'System Logs',
-                      item: NavigationItem.adminLogs,
-                      isSelected:
-                          viewModel.selectedItem == NavigationItem.adminLogs,
-                      onTap: () =>
-                          viewModel.setNavigationItem(NavigationItem.adminLogs),
-                    ),
-                  ],
-                );
-              },
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Consumer<NavigationViewModel>(
+                  builder: (context, viewModel, child) {
+                    return Column(
+                      children: [
+                        _buildNavItem(
+                          icon: Icons.dashboard,
+                          label: 'Dashboard',
+                          item: NavigationItem.dashboard,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.dashboard,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.dashboard),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.restaurant_menu, // Meals Planning
+                          label: 'Meals Planning',
+                          item: NavigationItem.mealsPlanning,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.mealsPlanning,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.mealsPlanning),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.people, // Subscriptions
+                          label: 'Subscriptions',
+                          item: NavigationItem.subscriptions,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.subscriptions,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.subscriptions),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.local_shipping, // Delivery Fleet
+                          label: 'Delivery Fleet',
+                          item: NavigationItem.deliveryFleet,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.deliveryFleet,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.deliveryFleet),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.attach_money, // Financials
+                          label: 'Payments & Billing',
+                          item: NavigationItem.financials,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.financials,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.financials),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.chat_bubble_outline, // Feedback
+                          label: 'Feedback',
+                          item: NavigationItem.feedback,
+                          isSelected:
+                              viewModel.selectedItem == NavigationItem.feedback,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.feedback),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.access_time_filled, // Cutoff Settings
+                          label: 'Cutoff Settings',
+                          item: NavigationItem.cutoffSettings,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.cutoffSettings,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.cutoffSettings),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.add_shopping_cart, // Add-on Food
+                          label: 'Add-on Food',
+                          item: NavigationItem.addonFood,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.addonFood,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.addonFood),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildNavItem(
+                          icon: Icons.history, // System Logs
+                          label: 'System Logs',
+                          item: NavigationItem.adminLogs,
+                          isSelected: viewModel.selectedItem ==
+                              NavigationItem.adminLogs,
+                          onTap: () => viewModel
+                              .setNavigationItem(NavigationItem.adminLogs),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-          const Spacer(),
           _buildFooter(context),
         ],
       ),
