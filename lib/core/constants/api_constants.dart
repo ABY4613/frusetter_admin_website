@@ -23,4 +23,5 @@ class ApiConstants {
       '$apiVersion/admin/driver-assignments';
   static const String adminDashboardDaily = '$apiVersion/admin/dashboard/daily';
   static const String adminLogs = '$apiVersion/admin/logs';
+  static const String adminFeedbacks = '$apiVersion/admin/feedbacks';
 }

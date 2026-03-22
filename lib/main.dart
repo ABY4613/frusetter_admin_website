@@ -13,6 +13,7 @@ import 'controller/addon_food_controller.dart';
 import 'controller/driver_controller.dart';
 import 'controller/dashboard_controller.dart';
 import 'controller/admin_log_controller.dart';
+import 'controller/feedback_controller.dart';
 //import 'view/side_bar/screens/company_management/view_models/company_view_model.dart';
 
 void main() {
@@ -30,6 +31,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => DriverController()),
         ChangeNotifierProvider(create: (_) => DashboardController()),
         ChangeNotifierProvider(create: (_) => AdminLogController()),
+        ChangeNotifierProvider(create: (_) => FeedbackController()),
         // ChangeNotifierProvider(create: (_) => CompanyViewModel()),
       ],
       child: const MyApp(),

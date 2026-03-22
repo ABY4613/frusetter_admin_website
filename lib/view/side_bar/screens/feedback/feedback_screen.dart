@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:frusette_admin_operations_web_dashboard/core/theme/app_colors.dart';
-import 'package:frusette_admin_operations_web_dashboard/core/data/dummy_data.dart';
 import 'package:frusette_admin_operations_web_dashboard/model/feedback_item.dart';
+import 'package:provider/provider.dart';
+import '../../../../controller/feedback_controller.dart';
+import 'package:intl/intl.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -15,45 +17,62 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   String _selectedFilter = 'Last 7 Days';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FeedbackController>().fetchFeedbacks();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 900;
+      body: Consumer<FeedbackController>(
+        builder: (context, controller, child) {
+          if (controller.isLoading && controller.feedbackResponse == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(isMobile),
-                const SizedBox(height: 32),
-                if (isMobile)
-                  Column(
-                    children: [
-                      _buildStatsSidebar(), // Show stats first on mobile or second? Usually main content first, but stats are summary. Let's put stats at bottom or make them collapsible?
-                      // Let's stick to standard flow: Content then Sidebar or Sidebar then Content.
-                      // For dashboards, usually high level stats are top. But here "Sidebar" is right side.
-                      // Let's put Stats first then Reviews? or Reviews then Stats.
-                      // Looking at content, Stats are "Top Performers", "Sentiment". Reviews are the detailed list.
-                      // Let's put Stats first for mobile summary.
-                      _buildStatsSidebar(),
-                      const SizedBox(height: 32),
-                      _buildRecentReviews(),
-                    ],
-                  )
-                else
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 2, child: _buildRecentReviews()),
-                      const SizedBox(width: 24),
-                      Expanded(flex: 1, child: _buildStatsSidebar()),
-                    ],
-                  ),
-              ],
-            ),
+          if (controller.errorMessage != null &&
+              controller.feedbackResponse == null) {
+            return Center(child: Text(controller.errorMessage!));
+          }
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 900;
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(isMobile),
+                    const SizedBox(height: 32),
+                    if (isMobile)
+                      Column(
+                        children: [
+                          _buildStatsSidebar(controller),
+                          const SizedBox(height: 32),
+                          _buildRecentReviews(controller),
+                        ],
+                      )
+                    else
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                              flex: 2, child: _buildRecentReviews(controller)),
+                          const SizedBox(width: 24),
+                          Expanded(
+                              flex: 1, child: _buildStatsSidebar(controller)),
+                        ],
+                      ),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),
@@ -193,7 +212,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  Widget _buildRecentReviews() {
+  Widget _buildRecentReviews(FeedbackController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -228,24 +247,26 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        ...DummyData.feedbackList.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: InkWell(
-                onTap: () => _showFeedbackDetails(item),
-                borderRadius: BorderRadius.circular(24),
-                child: _buildReviewCard(
-                  name: item.userName,
-                  role:
-                      'Verified Subscriber', // You might want to add role to model later
-                  time:
-                      '${DateTime.now().difference(item.date).inDays} days ago',
-                  rating: item.rating.toInt(),
-                  comment: item.comment,
-                  item: 'Meal Order', // or specific item from model
-                  avatarColor: Colors.blue.shade100, // Dynamic color?
+        if (controller.feedbacks.isEmpty)
+          const Center(child: Text('No reviews found'))
+        else
+          ...controller.feedbacks.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: InkWell(
+                  onTap: () => _showFeedbackDetails(item),
+                  borderRadius: BorderRadius.circular(24),
+                  child: _buildReviewCard(
+                    name: item.customerName,
+                    role: 'Verified Subscriber',
+                    time: DateFormat('MMM d, yyyy').format(item.createdAt),
+                    rating: item.rating,
+                    comment: item.comments,
+                    item: item.planName,
+                    avatarColor: Colors.blue.shade100,
+                    isDelivery: item.feedbackType == 'delivery',
+                  ),
                 ),
-              ),
-            )),
+              )),
       ],
     );
   }
@@ -290,7 +311,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     radius: 24,
                     backgroundColor: Colors.blue.shade100,
                     child: Text(
-                      item.userName[0],
+                      item.customerName.isNotEmpty ? item.customerName[0] : 'U',
                       style: GoogleFonts.inter(
                           fontWeight: FontWeight.bold,
                           color: AppColors.black,
@@ -302,7 +323,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.userName,
+                        item.customerName,
                         style: GoogleFonts.inter(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -343,10 +364,21 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: Text(
-                  item.comment,
+                  item.comments,
                   style:
                       GoogleFonts.inter(fontSize: 16, color: AppColors.black),
                 ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Food Quality: ${item.foodQualityRating}/5',
+                style:
+                    GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
+              ),
+              Text(
+                'Delivery Rating: ${item.deliveryRating}/5',
+                style:
+                    GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
               ),
               const SizedBox(height: 24),
               Row(
@@ -362,7 +394,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     onPressed: () {
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Reply sent to ${item.userName}')));
+                          content: Text('Reply sent to ${item.customerName}')));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
@@ -508,32 +540,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ],
                 ),
               ),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Dismiss',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textLight,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.reply, size: 16),
-                    label: Text(
-                      'Reply',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ],
@@ -541,10 +547,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  Widget _buildStatsSidebar() {
+  Widget _buildStatsSidebar(FeedbackController controller) {
     return Column(
       children: [
-        _buildSentimentCard(),
+        _buildSentimentCard(controller),
         const SizedBox(height: 24),
         _buildTopPerformersCard(),
         const SizedBox(height: 24),
@@ -553,7 +559,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  Widget _buildSentimentCard() {
+  Widget _buildSentimentCard(FeedbackController controller) {
+    final summary = controller.summary;
+    final avgOverall = summary?.avgOverall ?? 0.0;
+    final totalReviews = summary?.totalReviews ?? 0;
+    final distribution = summary?.ratingDistribution ?? {};
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -576,7 +587,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           Row(
             children: [
               Text(
-                '4.2',
+                avgOverall.toStringAsFixed(1),
                 style: GoogleFonts.inter(
                   color: AppColors.black,
                   fontSize: 48,
@@ -593,7 +604,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       (index) => Icon(
                         Icons.star,
                         size: 20,
-                        color: index < 4
+                        color: index < avgOverall.floor()
                             ? AppColors.primaryColor
                             : Colors.grey.shade300,
                       ),
@@ -601,7 +612,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Based on 1,248 reviews',
+                    'Based on $totalReviews reviews',
                     style: GoogleFonts.inter(
                       color: AppColors.textLight,
                       fontSize: 12,
@@ -612,11 +623,16 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          _buildSentimentBar(5, 0.45),
-          _buildSentimentBar(4, 0.30),
-          _buildSentimentBar(3, 0.15),
-          _buildSentimentBar(2, 0.07),
-          _buildSentimentBar(1, 0.03),
+          _buildSentimentBar(5,
+              totalReviews > 0 ? (distribution['5'] ?? 0) / totalReviews : 0),
+          _buildSentimentBar(4,
+              totalReviews > 0 ? (distribution['4'] ?? 0) / totalReviews : 0),
+          _buildSentimentBar(3,
+              totalReviews > 0 ? (distribution['3'] ?? 0) / totalReviews : 0),
+          _buildSentimentBar(2,
+              totalReviews > 0 ? (distribution['2'] ?? 0) / totalReviews : 0),
+          _buildSentimentBar(1,
+              totalReviews > 0 ? (distribution['1'] ?? 0) / totalReviews : 0),
         ],
       ),
     );
