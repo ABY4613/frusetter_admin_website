@@ -766,8 +766,11 @@ class SubscriptionTable extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 16,
+        runSpacing: 16,
         children: [
           Text(
             "Showing $startItem-$endItem of $total subscriptions",

@@ -454,11 +454,15 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
   }
 
   Widget _buildHeader(PaymentController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 16,
+      runSpacing: 24,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -501,7 +505,10 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
             ),
           ],
         ),
-        Row(
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             OutlinedButton.icon(
               onPressed: () => controller.refreshPayments(),
@@ -520,7 +527,6 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
             ElevatedButton.icon(
               onPressed: controller.isSendingReminders
                   ? null
@@ -552,7 +558,6 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
                 elevation: 0,
               ),
             ),
-            const SizedBox(width: 12),
             ElevatedButton.icon(
               onPressed: () {
                 controller.exportToCSV();
@@ -1444,8 +1449,11 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
     final endIndex = (startIndex + controller.payments.length - 1)
         .clamp(0, pagination.total);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 16,
+      runSpacing: 16,
       children: [
         RichText(
           text: TextSpan(
@@ -1468,11 +1476,16 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
             ],
           ),
         ),
-        Row(
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             // Page numbers
             if (pagination.totalPages > 1)
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: List.generate(
                   pagination.totalPages > 5 ? 5 : pagination.totalPages,
                   (index) {
@@ -1497,7 +1510,6 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
                       onTap: () => controller.goToPage(pageNum),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
@@ -1525,57 +1537,61 @@ class _FinancialsScreenState extends State<FinancialsScreen> {
                   },
                 ),
               ),
-            const SizedBox(width: 16),
-            OutlinedButton(
-              onPressed: controller.currentPage > 1
-                  ? () => controller.previousPage()
-                  : null,
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.grey.shade300),
-                foregroundColor: AppColors.black,
-                disabledForegroundColor: Colors.grey.shade400,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.chevron_left, size: 18),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Previous',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                OutlinedButton(
+                  onPressed: controller.currentPage > 1
+                      ? () => controller.previousPage()
+                      : null,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey.shade300),
+                    foregroundColor: AppColors.black,
+                    disabledForegroundColor: Colors.grey.shade400,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton(
-              onPressed: controller.currentPage < pagination.totalPages
-                  ? () => controller.nextPage()
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey.shade300,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'Next',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  child: Row(
+                    children: [
+                      Icon(Icons.chevron_left, size: 18),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Previous',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Icon(Icons.chevron_right, size: 18),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: controller.currentPage < pagination.totalPages
+                      ? () => controller.nextPage()
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Next',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.chevron_right, size: 18),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -15,8 +15,9 @@ class SideBarWidget extends StatelessWidget {
     return Container(
       width: 250,
       color: AppColors.white, // Dark background
-      child: Column(
-        children: [
+      child: SafeArea(
+        child: Column(
+          children: [
           _buildLogo(context),
           const SizedBox(height: 20),
           Expanded(
@@ -124,7 +125,8 @@ class SideBarWidget extends StatelessWidget {
             ),
           ),
           _buildFooter(context),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -202,12 +204,16 @@ class SideBarWidget extends StatelessWidget {
               size: 20,
             ),
             const SizedBox(width: 12),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                color: isSelected ? Colors.black : AppColors.black,
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  color: isSelected ? Colors.black : AppColors.black,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -254,6 +260,7 @@ class SideBarWidget extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           user?.fullName ?? 'Admin User',

@@ -10,8 +10,11 @@ class DeliveryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 16,
+      runSpacing: 16,
       children: [
         Text(
           "Delivery Overview",
@@ -21,10 +24,13 @@ class DeliveryHeader extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        Row(
+        Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
-              width: 300,
+              width: MediaQuery.of(context).size.width < 600 ? double.infinity : 300,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -44,41 +50,44 @@ class DeliveryHeader extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 24),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
-              ),
-              child: Icon(Icons.notifications_none, color: AppColors.black),
-            ),
-            const SizedBox(width: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => const AddDriverDialog(),
-                );
-              },
-              icon: const Icon(Icons.add, color: AppColors.black, size: 20),
-              label: Text(
-                "Add Driver",
-                style: GoogleFonts.inter(
-                  color: AppColors.black,
-                  fontWeight: FontWeight.w600,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  ),
+                  child: Icon(Icons.notifications_none, color: AppColors.black),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accentGreen,
-                elevation: 0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const AddDriverDialog(),
+                    );
+                  },
+                  icon: const Icon(Icons.add, color: AppColors.black, size: 20),
+                  label: Text(
+                    "Add Driver",
+                    style: GoogleFonts.inter(
+                      color: AppColors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accentGreen,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),

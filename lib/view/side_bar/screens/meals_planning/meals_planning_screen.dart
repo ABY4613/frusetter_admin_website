@@ -23,21 +23,22 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
     return Scaffold(
       backgroundColor: Colors.white, // Changed from Dark to White
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(40.0),
+        padding: EdgeInsets.all(isMobile ? 16.0 : 40.0),
         child: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1000),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
+                _buildHeader(isMobile),
                 const SizedBox(height: 32),
                 _buildFilters(),
                 const SizedBox(height: 32),
-                _buildPlanCards(),
+                _buildPlanCards(isMobile),
               ],
             ),
           ),
@@ -46,7 +47,7 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -77,8 +78,11 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
         ),
         const SizedBox(height: 16),
         // Title and Actions Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 16,
+          runSpacing: 16,
           children: [
             Text(
               'Meals Planning',
@@ -88,34 +92,29 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Row(
-              children: [
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const CreatePlanDialog(),
-                    );
-                  },
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(
-                    'New Plan',
-                    style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w600, fontSize: 14),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8AC53D), // Brand Green
-                    foregroundColor: Colors.black, // Text Black
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 0,
-                  ),
+            ElevatedButton.icon(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const CreatePlanDialog(),
+                );
+              },
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(
+                'New Plan',
+                style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8AC53D), // Brand Green
+                foregroundColor: Colors.black, // Text Black
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
-              ],
+                elevation: 0,
+              ),
             ),
           ],
         ),
@@ -316,7 +315,7 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
     );
   }
 
-  Widget _buildPlanCards() {
+  Widget _buildPlanCards(bool isMobile) {
     return Consumer<MealsController>(
       builder: (context, controller, _) {
         if (controller.isLoading) {
@@ -375,13 +374,13 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
         }
 
         return Column(
-          children: displayedPlans.map((plan) => _buildCard(plan)).toList(),
+          children: displayedPlans.map((plan) => _buildCard(plan, isMobile)).toList(),
         );
       },
     );
   }
 
-  Widget _buildCard(MealPlan plan) {
+  Widget _buildCard(MealPlan plan, bool isMobile) {
     // Generate some display logic
     final isPopular = plan.price > 6000;
     final imageUrl = plan.name.toLowerCase().contains('veg')
@@ -413,10 +412,19 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
           // Top badges row
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-            child: Row(
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
               children: [
-                // Active/Inactive Status Badge
-                Container(
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    // Active/Inactive Status Badge
+                    Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -457,7 +465,6 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
                 // Popular Badge
                 if (isPopular)
                   Container(
@@ -488,7 +495,13 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                       ],
                     ),
                   ),
-                const Spacer(),
+                  ],
+                ),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
                 // Created date
                 if (plan.createdAt != null)
                   Container(
@@ -563,19 +576,23 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                       ),
                     ],
                   ),
+                  ],
+                ),
               ],
             ),
           ),
 
           // Main content
           Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
+            padding: EdgeInsets.all(isMobile ? 16 : 24),
+            child: Flex(
+              direction: isMobile ? Axis.vertical : Axis.horizontal,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Left content
-                Expanded(
-                  flex: 3,
+                Flexible(
+                  flex: isMobile ? 0 : 3,
+                  fit: isMobile ? FlexFit.loose : FlexFit.tight,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -704,10 +721,14 @@ class _MealsPlanningScreenState extends State<MealsPlanningScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 32),
+                SizedBox(
+                  width: isMobile ? 0 : 32,
+                  height: isMobile ? 24 : 0,
+                ),
                 // Image Section with menu preview
-                Expanded(
-                  flex: 2,
+                Flexible(
+                  flex: isMobile ? 0 : 2,
+                  fit: isMobile ? FlexFit.loose : FlexFit.tight,
                   child: Column(
                     children: [
                       Container(

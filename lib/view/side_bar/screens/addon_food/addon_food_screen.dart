@@ -28,23 +28,24 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(40.0),
+        padding: EdgeInsets.all(isMobile ? 16.0 : 40.0),
         child: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1200),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
+                _buildHeader(isMobile),
                 const SizedBox(height: 32),
-                _buildStatsCards(),
+                _buildStatsCards(isMobile),
                 const SizedBox(height: 32),
                 _buildFilters(),
                 const SizedBox(height: 32),
-                _buildAddonFoodList(),
+                _buildAddonFoodList(isMobile),
               ],
             ),
           ),
@@ -53,12 +54,12 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isMobile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Breadcrumbs
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
               'Dashboard',
@@ -83,18 +84,21 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        // Title and Actions Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 16,
+          runSpacing: 16,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Add-on Food Management',
                   style: GoogleFonts.inter(
                     color: Colors.black,
-                    fontSize: 32,
+                    fontSize: isMobile ? 24 : 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -140,7 +144,7 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
     );
   }
 
-  Widget _buildStatsCards() {
+  Widget _buildStatsCards(bool isMobile) {
     return Consumer<AddonFoodController>(
       builder: (context, controller, _) {
         final totalItems = controller.addonFoods.length;
@@ -152,9 +156,12 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
           (sum, item) => sum + item.price,
         );
 
-        return Row(
+        return Wrap(
+          spacing: 16,
+          runSpacing: 16,
           children: [
-            Expanded(
+            SizedBox(
+              width: isMobile ? (MediaQuery.of(context).size.width - 48) / 2 : null,
               child: _buildStatCard(
                 'Total Items',
                 totalItems.toString(),
@@ -163,8 +170,8 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                 const Color(0xFFDEEBFF),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            SizedBox(
+              width: isMobile ? (MediaQuery.of(context).size.width - 48) / 2 : null,
               child: _buildStatCard(
                 'Available',
                 availableItems.toString(),
@@ -173,8 +180,8 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                 const Color(0xFFD1FAE5),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            SizedBox(
+              width: isMobile ? (MediaQuery.of(context).size.width - 48) / 2 : null,
               child: _buildStatCard(
                 'Unavailable',
                 unavailableItems.toString(),
@@ -183,8 +190,8 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                 const Color(0xFFFEE2E2),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            SizedBox(
+              width: isMobile ? (MediaQuery.of(context).size.width - 48) / 2 : null,
               child: _buildStatCard(
                 'Avg. Price',
                 '₹${totalItems > 0 ? (totalValue / totalItems).toStringAsFixed(0) : '0'}',
@@ -353,7 +360,7 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
     );
   }
 
-  Widget _buildAddonFoodList() {
+  Widget _buildAddonFoodList(bool isMobile) {
     return Consumer<AddonFoodController>(
       builder: (context, controller, _) {
         if (controller.isLoading) {
@@ -368,7 +375,6 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
             ? controller.addonFoods
             : controller.getByCategory(_selectedCategory);
 
-        // Apply sorting
         displayedItems = List.from(displayedItems);
         switch (_selectedSort) {
           case 'Newest First':
@@ -407,7 +413,7 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
 
         return Column(
           children:
-              displayedItems.map((item) => _buildAddonFoodCard(item)).toList(),
+              displayedItems.map((item) => _buildAddonFoodCard(item, isMobile)).toList(),
         );
       },
     );
@@ -482,7 +488,7 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
     );
   }
 
-  Widget _buildAddonFoodCard(AddonFood item) {
+  Widget _buildAddonFoodCard(AddonFood item, bool isMobile) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -505,12 +511,14 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top badges row
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-            child: Row(
+            child: Wrap(
+              alignment: WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                // Availability Badge
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -551,8 +559,6 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                // Category Badge
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -581,8 +587,6 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                     ],
                   ),
                 ),
-                const Spacer(),
-                // Created date
                 if (item.createdAt != null)
                   Container(
                     padding:
@@ -610,7 +614,6 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                       ],
                     ),
                   ),
-                // Menu Button
                 PopupMenuButton<String>(
                   icon: Icon(Icons.more_vert, color: Colors.grey.shade600),
                   shape: RoundedRectangleBorder(
@@ -684,18 +687,19 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
               ],
             ),
           ),
-
-          // Main content
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and Stock Row
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.start,
+                  spacing: 16,
+                  runSpacing: 16,
                   children: [
-                    Expanded(
+                    SizedBox(
+                      width: isMobile ? double.infinity : null,
                       child: Text(
                         item.title,
                         style: GoogleFonts.inter(
@@ -705,7 +709,6 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                         ),
                       ),
                     ),
-                    // Stock Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
@@ -755,7 +758,6 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Description
                 Text(
                   item.description,
                   style: GoogleFonts.inter(
@@ -767,7 +769,6 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 16),
-                // Tags
                 if (item.tags.isNotEmpty)
                   Wrap(
                     spacing: 8,
@@ -795,66 +796,58 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
                     }).toList(),
                   ),
                 if (item.tags.isNotEmpty) const SizedBox(height: 16),
-                // Nutrition Info
                 if (item.nutritionInfo != null &&
                     item.nutritionInfo!.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    child: Row(
+                  _buildNutritionInfo(item.nutritionInfo!),
+                const SizedBox(height: 24),
+                Divider(color: Colors.grey.shade100, height: 1),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.info_outline,
-                            color: Colors.blue.shade700, size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            item.nutritionInfo!,
-                            style: GoogleFonts.inter(
-                              color: Colors.blue.shade900,
-                              fontSize: 12,
-                            ),
+                        Text(
+                          'Unit Price',
+                          style: GoogleFonts.inter(
+                            color: const Color(0xFF6B7280),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '₹${item.price.toStringAsFixed(0)}',
+                          style: GoogleFonts.inter(
+                            color: Colors.black,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                if (item.nutritionInfo != null &&
-                    item.nutritionInfo!.isNotEmpty)
-                  const SizedBox(height: 16),
-                // Price
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '₹',
-                      style: GoogleFonts.inter(
-                        color: Colors.black87,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      item.price.toStringAsFixed(0),
-                      style: GoogleFonts.inter(
-                        color: Colors.black,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        '/ item',
-                        style: GoogleFonts.inter(
-                          color: Colors.grey.shade500,
-                          fontSize: 14,
+                    Row(
+                      children: [
+                        _buildActionButton(
+                          icon: Icons.edit_outlined,
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) =>
+                                  CreateAddonFoodDialog(editItem: item),
+                            );
+                          },
+                          color: Colors.grey.shade100,
+                          iconColor: Colors.black87,
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        _buildActionButton(
+                          icon: Icons.delete_outline,
+                          onPressed: () => _confirmDelete(item),
+                          color: const Color(0xFFFEE2E2),
+                          iconColor: const Color(0xFFEF4444),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -866,56 +859,101 @@ class _AddonFoodScreenState extends State<AddonFoodScreen> {
     );
   }
 
+  Widget _buildActionButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required Color color,
+    required Color iconColor,
+  }) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNutritionInfo(String nutritionInfo) {
+    // Attempt to split by comma to show individual items
+    final items = nutritionInfo.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Wrap(
+        spacing: 24,
+        runSpacing: 16,
+        children: items.map((item) {
+          final parts = item.split(':');
+          if (parts.length >= 2) {
+            final key = parts[0].trim();
+            final value = parts.sublist(1).join(':').trim();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  key.toUpperCase(),
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF6B7280),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            );
+          }
+          // Default fallback for items without a colon
+          return Text(
+            item,
+            style: GoogleFonts.inter(
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   void _confirmDelete(AddonFood item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.white,
-        title: Text(
-          'Delete Item',
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.bold,
-            color: AppColors.black,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to delete "${item.title}"? This action cannot be undone.',
-          style: GoogleFonts.inter(
-            color: AppColors.black,
-          ),
-        ),
+        title: Text('Delete Item', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to delete "${item.title}"? This action cannot be undone.',
+            style: GoogleFonts.inter()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.inter(
-                color: AppColors.textLight,
-              ),
-            ),
+            child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
           ),
           TextButton(
-            onPressed: () async {
+            onPressed: () {
+              context.read<AddonFoodController>().deleteAddonFood(item.id!);
               Navigator.pop(context);
-              final success = await context
-                  .read<AddonFoodController>()
-                  .deleteAddonFood(item.id!);
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${item.title} deleted successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
             },
-            child: Text(
-              'Delete',
-              style: GoogleFonts.inter(
-                color: AppColors.accentRed,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('Delete', style: GoogleFonts.inter(color: Colors.red)),
           ),
         ],
       ),

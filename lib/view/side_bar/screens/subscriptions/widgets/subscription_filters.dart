@@ -27,6 +27,7 @@ class _SubscriptionFiltersState extends State<SubscriptionFilters> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
     return Consumer<SubscriptionController>(
       builder: (context, controller, _) {
         return Container(
@@ -40,11 +41,13 @@ class _SubscriptionFiltersState extends State<SubscriptionFilters> {
             border:
                 Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.1))),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Flex(
+            direction: isMobile ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment: isMobile ? CrossAxisAlignment.stretch : CrossAxisAlignment.end,
             children: [
-              Expanded(
-                flex: 2,
+              Flexible(
+                flex: isMobile ? 0 : 2,
+                fit: isMobile ? FlexFit.loose : FlexFit.tight,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -105,9 +108,10 @@ class _SubscriptionFiltersState extends State<SubscriptionFilters> {
                   ],
                 ),
               ),
-              const SizedBox(width: 24),
-              Expanded(
-                flex: 1,
+              SizedBox(height: isMobile ? 16 : 0, width: isMobile ? 0 : 24),
+              Flexible(
+                flex: isMobile ? 0 : 1,
+                fit: isMobile ? FlexFit.loose : FlexFit.tight,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -163,8 +167,11 @@ class _SubscriptionFiltersState extends State<SubscriptionFilters> {
                   ],
                 ),
               ),
-              const Spacer(),
-              TextButton.icon(
+              if (!isMobile) const Spacer(),
+              if (isMobile) const SizedBox(height: 16),
+              Align(
+                alignment: isMobile ? Alignment.centerRight : Alignment.center,
+                child: TextButton.icon(
                 onPressed: () {
                   // Refresh subscriptions
                   controller.refreshSubscriptions();
@@ -191,6 +198,7 @@ class _SubscriptionFiltersState extends State<SubscriptionFilters> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 ),
+              ),
               ),
             ],
           ),
