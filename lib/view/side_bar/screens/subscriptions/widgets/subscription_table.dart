@@ -455,37 +455,6 @@ class SubscriptionTable extends StatelessWidget {
                               EditSubscriptionDialog(subscription: sub),
                         );
                         break;
-                      case 'pause':
-                        final success = await controller
-                            .toggleSubscriptionStatus(sub.id, 'paused');
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(success
-                                  ? 'Subscription paused successfully'
-                                  : controller.errorMessage ??
-                                      'Failed to pause subscription'),
-                              backgroundColor:
-                                  success ? Colors.green : Colors.red,
-                            ),
-                          );
-                        }
-                        break;
-                      case 'activate':
-                        final success = await controller
-                            .toggleSubscriptionStatus(sub.id, 'active');
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(success
-                                  ? 'Subscription activated successfully'
-                                  : controller.errorMessage ??
-                                      'Failed to activate subscription'),
-                              backgroundColor:
-                                  success ? Colors.green : Colors.red,
-                            ),
-                          );
-                        }
                         break;
                       case 'cancel':
                         // Show confirmation dialog
@@ -579,38 +548,6 @@ class SubscriptionTable extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Show Pause for active subscriptions
-                      if (isActive)
-                        PopupMenuItem(
-                          value: 'pause',
-                          child: Row(
-                            children: [
-                              Icon(Icons.pause_circle_outline,
-                                  size: 18, color: AppColors.accentOrange),
-                              const SizedBox(width: 8),
-                              Text('Pause',
-                                  style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: AppColors.accentOrange)),
-                            ],
-                          ),
-                        ),
-                      // Show Activate for paused subscriptions
-                      if (isPaused)
-                        PopupMenuItem(
-                          value: 'activate',
-                          child: Row(
-                            children: [
-                              Icon(Icons.play_circle_outline,
-                                  size: 18, color: AppColors.accentGreen),
-                              const SizedBox(width: 8),
-                              Text('Activate',
-                                  style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: AppColors.accentGreen)),
-                            ],
-                          ),
-                        ),
                       // Show Cancel for active or paused subscriptions
                       if (!isCancelled && !isExpired)
                         PopupMenuItem(

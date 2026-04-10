@@ -70,7 +70,8 @@ class _UpcomingMealsScreenState extends State<UpcomingMealsScreen> {
     return Consumer<UpcomingMealsController>(
       builder: (context, controller, child) {
         return Container(
-          padding: EdgeInsets.all(isMobile ? 16 : 24),
+          width: double.infinity,
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
@@ -86,6 +87,7 @@ class _UpcomingMealsScreenState extends State<UpcomingMealsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     decoration: BoxDecoration(
@@ -97,41 +99,50 @@ class _UpcomingMealsScreenState extends State<UpcomingMealsScreen> {
                         Provider.of<NavigationViewModel>(context, listen: false)
                             .setNavigationItem(NavigationItem.subscriptions);
                       },
-                      icon: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.primaryColor, size: 20),
+                      icon: Icon(Icons.arrow_back_rounded,
+                          color: AppColors.primaryColor, size: isMobile ? 18 : 20),
                       tooltip: 'Back to Subscriptions',
+                      constraints: BoxConstraints(
+                        minWidth: isMobile ? 36 : 40,
+                        minHeight: isMobile ? 36 : 40,
+                      ),
+                      padding: EdgeInsets.zero,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Upcoming Meals',
                           style: GoogleFonts.inter(
-                            fontSize: isMobile ? 20 : 28,
+                            fontSize: isMobile ? 17 : 28,
                             fontWeight: FontWeight.w800,
                             color: AppColors.black,
                             letterSpacing: -0.5,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         if (controller.selectedUserName != null)
                           Padding(
-                            padding: const EdgeInsets.only(top: 2.0),
+                            padding: const EdgeInsets.only(top: 1.0),
                             child: Row(
                               children: [
                                 Icon(Icons.person_outline,
-                                    size: 12, color: AppColors.textLight),
+                                    size: 10, color: AppColors.textLight),
                                 const SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
                                     controller.selectedUserName!,
                                     style: GoogleFonts.inter(
-                                      fontSize: 12,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.w500,
                                       color: AppColors.textLight,
                                     ),
+                                    maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -150,29 +161,38 @@ class _UpcomingMealsScreenState extends State<UpcomingMealsScreen> {
                     ),
                     const SizedBox(width: 8),
                     _buildPauseButton(),
+                  ] else ...[
+                    // Compact count for mobile
+                    if (controller.upcomingMeals.isNotEmpty)
+                      _buildMealCountBadge(controller.upcomingMeals.length, true),
                   ],
                 ],
               ),
               if (isMobile) ...[
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(child: _buildPauseButton()),
                     const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: _fetchMeals,
-                      icon: const Icon(Icons.refresh_rounded,
-                          color: AppColors.textLight),
-                      tooltip: 'Refresh',
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        onPressed: _fetchMeals,
+                        icon: const Icon(Icons.refresh_rounded,
+                            color: AppColors.textLight, size: 18),
+                        tooltip: 'Refresh',
+                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      ),
                     ),
                   ],
                 ),
               ],
               if (controller.upcomingMeals.isNotEmpty && !isMobile) ...[
                 const SizedBox(height: 16),
-                _buildMealCountBadge(controller.upcomingMeals.length),
+                _buildMealCountBadge(controller.upcomingMeals.length, false),
               ],
             ],
           ),
@@ -184,23 +204,24 @@ class _UpcomingMealsScreenState extends State<UpcomingMealsScreen> {
   Widget _buildPauseButton() {
     return ElevatedButton.icon(
       onPressed: () => _showPauseByDateDialog(context),
-      icon: const Icon(Icons.pause_circle_filled, size: 18),
-      label: const Text('Pause by Date'),
+      icon: const Icon(Icons.pause_circle_filled, size: 16),
+      label: Text('Pause by Date', style: GoogleFonts.inter(fontSize: 12)),
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.accentRed,
         foregroundColor: Colors.white,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
   }
 
-  Widget _buildMealCountBadge(int count) {
+  Widget _buildMealCountBadge(int count, bool isCompact) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? 6 : 12, vertical: isCompact ? 2 : 6),
       decoration: BoxDecoration(
         color: AppColors.accentGreen.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
@@ -209,12 +230,13 @@ class _UpcomingMealsScreenState extends State<UpcomingMealsScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.calendar_month, size: 14, color: AppColors.accentGreen),
-          const SizedBox(width: 6),
+          Icon(Icons.calendar_month,
+              size: isCompact ? 10 : 14, color: AppColors.accentGreen),
+          const SizedBox(width: 4),
           Text(
-            '$count Scheduled',
+            isCompact ? '$count' : '$count Scheduled',
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: isCompact ? 9 : 11,
               fontWeight: FontWeight.w600,
               color: AppColors.accentGreen,
             ),
@@ -300,7 +322,7 @@ class _UpcomingMealsScreenState extends State<UpcomingMealsScreen> {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: isMobile ? 600 : 400,
-            mainAxisExtent: isMobile ? 240 : 180,
+            mainAxisExtent: isMobile ? 260 : 210, // Increased from 180/240
             crossAxisSpacing: isMobile ? 16 : 24,
             mainAxisSpacing: isMobile ? 16 : 24,
           ),
