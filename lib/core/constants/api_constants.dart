@@ -24,4 +24,14 @@ class ApiConstants {
   static const String adminDashboardDaily = '$apiVersion/admin/dashboard/daily';
   static const String adminLogs = '$apiVersion/admin/logs';
   static const String adminFeedbacks = '$apiVersion/admin/feedbacks';
+  
+  // Customer Endpoints
+  static String adminCustomerUpcomingMeals(String userId) => 
+      '$apiVersion/admin/customers/$userId/meals/upcoming';
+  
+  static String adminPauseMeal(String userId, String mealId) => 
+      '$apiVersion/admin/customers/$userId/meals/$mealId/pause';
+      
+  static String adminUnpauseMeal(String userId, String mealId) => 
+      '$apiVersion/admin/customers/$userId/meals/$mealId/unpause';
 }

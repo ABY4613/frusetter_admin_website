@@ -9,7 +9,8 @@ enum NavigationItem {
   feedback,
   cutoffSettings,
   addonFood,
-  adminLogs
+  adminLogs,
+  upcomingMeals
 }
 
 class NavigationViewModel extends ChangeNotifier {

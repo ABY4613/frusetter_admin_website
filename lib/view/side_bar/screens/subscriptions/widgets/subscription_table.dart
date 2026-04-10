@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frusette_admin_operations_web_dashboard/controller/upcoming_meals_controller.dart';
+import 'package:frusette_admin_operations_web_dashboard/core/view_models/navigation_view_model.dart';
 import 'package:provider/provider.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -437,6 +439,15 @@ class SubscriptionTable extends StatelessWidget {
                       case 'view':
                         _showSubscriptionDetails(context, sub);
                         break;
+                      case 'upcoming_meals':
+                        // Set the user ID and Name in the upcoming meals controller
+                        Provider.of<UpcomingMealsController>(context,
+                                listen: false)
+                            .setSelectedUser(sub.userId, sub.userName);
+                        // Navigate to the upcoming meals screen
+                        Provider.of<NavigationViewModel>(context, listen: false)
+                            .setNavigationItem(NavigationItem.upcomingMeals);
+                        break;
                       case 'edit':
                         showDialog(
                           context: context,
@@ -540,6 +551,20 @@ class SubscriptionTable extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text('View Details',
                                 style: GoogleFonts.inter(fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'upcoming_meals',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.restaurant_menu_outlined,
+                                size: 18, color: AppColors.accentGreen),
+                            const SizedBox(width: 8),
+                            Text('Upcoming Meals',
+                                style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: AppColors.accentGreen)),
                           ],
                         ),
                       ),

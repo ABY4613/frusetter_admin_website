@@ -53,7 +53,9 @@ class SideBarWidget extends StatelessWidget {
                           label: 'Subscriptions',
                           item: NavigationItem.subscriptions,
                           isSelected: viewModel.selectedItem ==
-                              NavigationItem.subscriptions,
+                                  NavigationItem.subscriptions ||
+                              viewModel.selectedItem ==
+                                  NavigationItem.upcomingMeals,
                           onTap: () => viewModel
                               .setNavigationItem(NavigationItem.subscriptions),
                         ),
