@@ -30,8 +30,8 @@ class SubscriptionUser {
       fullName: json['FullName'] ?? '',
       role: json['Role'] ?? '',
       isActive: json['IsActive'] ?? false,
-      createdAt: DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['UpdatedAt'] ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now()).toLocal(),
+      updatedAt: (DateTime.tryParse(json['UpdatedAt'] ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 }
@@ -73,7 +73,7 @@ class SubscriptionPlan {
           [],
       price: (json['price'] ?? 0).toDouble(),
       isActive: json['is_active'] ?? false,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 
@@ -131,14 +131,14 @@ class Subscription {
       userId: json['UserID'] ?? json['user_id'] ?? '',
       planId: json['PlanID'] ?? json['plan_id'] ?? '',
       startDate:
-          DateTime.tryParse(json['StartDate'] ?? json['start_date'] ?? '') ??
-              DateTime.now(),
-      originalEndDate: DateTime.tryParse(
+          (DateTime.tryParse(json['StartDate'] ?? json['start_date'] ?? '') ??
+              DateTime.now()).toLocal(),
+      originalEndDate: (DateTime.tryParse(
               json['OriginalEndDate'] ?? json['original_end_date'] ?? '') ??
-          DateTime.now(),
-      adjustedEndDate: DateTime.tryParse(
+          DateTime.now()).toLocal(),
+      adjustedEndDate: (DateTime.tryParse(
               json['AdjustedEndDate'] ?? json['adjusted_end_date'] ?? '') ??
-          DateTime.now(),
+          DateTime.now()).toLocal(),
       status: _parseStatus(json['Status'] ?? json['status']),
       paymentStatus: json['PaymentStatus'] ?? json['payment_status'] ?? '',
       totalAmount:
@@ -149,11 +149,11 @@ class Subscription {
       pausedDays: json['PausedDays'] ?? json['paused_days'] ?? 0,
       preferences: (json['Preferences'] ?? json['preferences'])?.toString(),
       createdAt:
-          DateTime.tryParse(json['CreatedAt'] ?? json['created_at'] ?? '') ??
-              DateTime.now(),
+          (DateTime.tryParse(json['CreatedAt'] ?? json['created_at'] ?? '') ??
+              DateTime.now()).toLocal(),
       updatedAt:
-          DateTime.tryParse(json['UpdatedAt'] ?? json['updated_at'] ?? '') ??
-              DateTime.now(),
+          (DateTime.tryParse(json['UpdatedAt'] ?? json['updated_at'] ?? '') ??
+              DateTime.now()).toLocal(),
       user: SubscriptionUser.fromJson(json['user'] ?? json['User'] ?? {}),
       plan: SubscriptionPlan.fromJson(json['plan'] ?? json['Plan'] ?? {}),
     );

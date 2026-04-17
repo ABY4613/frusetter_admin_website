@@ -234,14 +234,13 @@ class SubscriptionController with ChangeNotifier {
           '${ApiConstants.baseUrl}${ApiConstants.adminSubscriptions}');
       debugPrint('Adding subscription to $url');
 
-      // Format dates as RFC3339 with 'Z' suffix for UTC timezone
-      String formatDateToRFC3339(DateTime date) {
-        final utcDate = date.toUtc();
-        // toIso8601String() on UTC dates already includes 'Z'
-        // Just remove milliseconds if present
-        final isoString = utcDate.toIso8601String();
-        // Remove milliseconds (.000) but keep the 'Z'
-        return isoString.replaceFirst(RegExp(r'\.\d{3}'), '');
+      // Format dates for Indian Standard Time (+05:30)
+      // We set time to 12:00 PM to avoid day-shifting issues during UTC conversion
+      String formatDateToIST(DateTime date) {
+        final year = date.year.toString().padLeft(4, '0');
+        final month = date.month.toString().padLeft(2, '0');
+        final day = date.day.toString().padLeft(2, '0');
+        return '${year}-${month}-${day}T12:00:00+05:30';
       }
 
       final body = {
@@ -251,8 +250,8 @@ class SubscriptionController with ChangeNotifier {
         "full_name": fullName,
         if (address != null && address.isNotEmpty) "address": address,
         "plan_id": planId,
-        "start_date": formatDateToRFC3339(startDate),
-        "end_date": formatDateToRFC3339(endDate),
+        "start_date": formatDateToIST(startDate),
+        "end_date": formatDateToIST(endDate),
         "amount_paid": amountPaid,
         "AmountPaid": amountPaid,
         "total_amount": totalAmount,
@@ -333,14 +332,16 @@ class SubscriptionController with ChangeNotifier {
       if (address != null) body["address"] = address;
       if (planId != null) body["plan_id"] = planId;
       if (startDate != null) {
-        final utcDate = startDate.toUtc();
-        body["start_date"] =
-            utcDate.toIso8601String().replaceFirst(RegExp(r'\.\d{3}'), '');
+        final year = startDate.year.toString().padLeft(4, '0');
+        final month = startDate.month.toString().padLeft(2, '0');
+        final day = startDate.day.toString().padLeft(2, '0');
+        body["start_date"] = '${year}-${month}-${day}T12:00:00+05:30';
       }
       if (endDate != null) {
-        final utcEndDate = endDate.toUtc();
-        body["end_date"] =
-            utcEndDate.toIso8601String().replaceFirst(RegExp(r'\.\d{3}'), '');
+        final year = endDate.year.toString().padLeft(4, '0');
+        final month = endDate.month.toString().padLeft(2, '0');
+        final day = endDate.day.toString().padLeft(2, '0');
+        body["end_date"] = '${year}-${month}-${day}T12:00:00+05:30';
       }
       if (amountPaid != null) {
         body["amount_paid"] = amountPaid;

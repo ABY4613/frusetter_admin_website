@@ -34,7 +34,7 @@ class UpcomingMeal {
       id: json['ID'] ?? '',
       subscriptionId: json['SubscriptionID'] ?? '',
       userId: json['UserID'] ?? '',
-      deliveryDate: DateTime.tryParse(json['DeliveryDate'] ?? '') ?? DateTime.now(),
+      deliveryDate: (DateTime.tryParse(json['DeliveryDate'] ?? '') ?? DateTime.now()).toLocal(),
       mealType: json['MealType'] ?? '',
       mealName: json['meal_name'] ?? '',
       deliverySlot: json['DeliverySlot'] ?? '',
@@ -42,8 +42,8 @@ class UpcomingMeal {
       status: json['Status'] ?? '',
       isCustomRequest: json['is_custom_request'] ?? false,
       specialInstructions: json['SpecialInstructions'] ?? '',
-      createdAt: DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['UpdatedAt'] ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now()).toLocal(),
+      updatedAt: (DateTime.tryParse(json['UpdatedAt'] ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 }

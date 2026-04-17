@@ -28,8 +28,8 @@ class PaymentUser {
       fullName: json['FullName'] ?? '',
       role: json['Role'] ?? '',
       isActive: json['IsActive'] ?? false,
-      createdAt: DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['UpdatedAt'] ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['CreatedAt'] ?? '') ?? DateTime.now()).toLocal(),
+      updatedAt: (DateTime.tryParse(json['UpdatedAt'] ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 }
@@ -71,7 +71,7 @@ class PaymentPlan {
           [],
       price: (json['price'] ?? 0).toDouble(),
       isActive: json['is_active'] ?? false,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 
@@ -132,10 +132,10 @@ class Payment {
       balanceAmount: (json['balance_amount'] ?? 0).toDouble(),
       paymentStatus: _parsePaymentStatus(json['payment_status']),
       status: _parseSubscriptionStatus(json['status']),
-      startDate: DateTime.tryParse(json['start_date'] ?? '') ?? DateTime.now(),
-      endDate: DateTime.tryParse(json['end_date'] ?? '') ?? DateTime.now(),
+      startDate: (DateTime.tryParse(json['start_date'] ?? '') ?? DateTime.now()).toLocal(),
+      endDate: (DateTime.tryParse(json['end_date'] ?? '') ?? DateTime.now()).toLocal(),
       daysOverdue: json['days_overdue'] ?? 0,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 
