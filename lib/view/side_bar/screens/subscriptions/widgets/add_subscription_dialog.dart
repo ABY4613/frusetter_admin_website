@@ -26,8 +26,8 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
   final _pendingAmountController = TextEditingController(text: '0');
   final _prefsController = TextEditingController(text: '[]');
 
-  DateTime _selectedDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(days: 30));
+  late DateTime _selectedDate;
+  late DateTime _endDate;
 
   // Selected plan from dropdown
   MealPlan? _selectedPlan;
@@ -46,9 +46,31 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
   ];
   final List<String> _paymentStatusOptions = ['pending', 'paid', 'overdue'];
 
+  DateTime _calculateEndDate(DateTime startDate, int workingDays) {
+    DateTime date = startDate;
+    int count = 0;
+    while (count < workingDays) {
+      date = date.add(const Duration(days: 1));
+      if (date.weekday != DateTime.sunday) {
+        count++;
+      }
+    }
+    return date;
+  }
+
+  DateTime _getDefaultStartDate() {
+    DateTime now = DateTime.now();
+    if (now.weekday == DateTime.sunday) {
+      return now.add(const Duration(days: 1));
+    }
+    return now;
+  }
+
   @override
   void initState() {
     super.initState();
+    _selectedDate = _getDefaultStartDate();
+    _endDate = _calculateEndDate(_selectedDate, 24);
     _amountPaidController.addListener(_calculatePendingAmount);
     // Fetch plans when dialog opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -172,7 +194,10 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
                     Expanded(
                       child:
                           _buildDateField("Start Date", _selectedDate, (date) {
-                        setState(() => _selectedDate = date);
+                        setState(() {
+                          _selectedDate = date;
+                          _endDate = _calculateEndDate(date, 24);
+                        });
                       }),
                     ),
                     const SizedBox(width: 16),
@@ -359,7 +384,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
             }
 
             return DropdownButtonFormField<MealPlan>(
-              value: _selectedPlan,
+              initialValue: _selectedPlan,
               decoration: InputDecoration(
                 hintText: 'Select a plan',
                 hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -412,9 +437,8 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
                   // Auto-fill amount with the plan price
                   if (newValue != null) {
                     _calculatePendingAmount();
-                    // Auto-set end date based on plan duration
-                    _endDate = _selectedDate
-                        .add(Duration(days: newValue.durationDays));
+                    // Auto-set end date based on 24 working days
+                    _endDate = _calculateEndDate(_selectedDate, 24);
                   }
                 });
               },
@@ -446,7 +470,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedStatus,
+          initialValue: _selectedStatus,
           decoration: InputDecoration(
             hintText: 'Select status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -505,7 +529,7 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedPaymentStatus,
+          initialValue: _selectedPaymentStatus,
           decoration: InputDecoration(
             hintText: 'Select payment status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -666,6 +690,12 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
 
   Widget _buildDateField(
       String label, DateTime date, Function(DateTime) onSelect) {
+    // Ensure the initialDate is not Sunday to avoid Flutter showDatePicker assert failure
+    DateTime initialDate = date;
+    if (initialDate.weekday == DateTime.sunday) {
+      initialDate = initialDate.add(const Duration(days: 1));
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -682,9 +712,12 @@ class _AddSubscriptionDialogState extends State<AddSubscriptionDialog> {
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
-              initialDate: date,
+              initialDate: initialDate,
               firstDate: DateTime(2020),
               lastDate: DateTime(2030),
+              selectableDayPredicate: (DateTime day) {
+                return day.weekday != DateTime.sunday;
+              },
             );
             if (picked != null) {
               onSelect(picked);

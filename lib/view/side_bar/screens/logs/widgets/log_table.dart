@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -39,9 +38,11 @@ class LogTable extends StatelessWidget {
                     onPressed: () => controller.fetchLogs(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Retry Connection', style: TextStyle(color: Colors.white)),
+                    child: const Text('Retry Connection',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -55,7 +56,8 @@ class LogTable extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_off_outlined, color: AppColors.textLight.withOpacity(0.5), size: 64),
+                  Icon(Icons.search_off_outlined,
+                      color: AppColors.textLight.withOpacity(0.5), size: 64),
                   const SizedBox(height: 16),
                   Text(
                     'No activities found matching your filters.',
@@ -86,7 +88,10 @@ class LogTable extends StatelessWidget {
     );
   }
 
-  Widget _buildContainer({required Widget child, Pagination? pagination, Function(int)? onPageChanged}) {
+  Widget _buildContainer(
+      {required Widget child,
+      Pagination? pagination,
+      Function(int)? onPageChanged}) {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.white,
@@ -114,12 +119,14 @@ class LogTable extends StatelessWidget {
       child: DataTable(
         headingRowHeight: 56,
         dataRowMaxHeight: 70,
-        headingRowColor: WidgetStateProperty.all(AppColors.black.withOpacity(0.02)),
+        headingRowColor:
+            WidgetStateProperty.all(AppColors.black.withOpacity(0.02)),
         dividerThickness: 0.5,
         columnSpacing: 30,
         columns: [
           _buildColumn('TIMELINE'),
           _buildColumn('ROLE'),
+          _buildColumn('ACTOR'),
           _buildColumn('ACTION'),
           _buildColumn('ENTITY TARGET'),
           _buildColumn('AUDIT INFO'),
@@ -133,22 +140,37 @@ class LogTable extends StatelessWidget {
                 children: [
                   Text(
                     DateFormat('MMM dd, yyyy').format(log.createdAt),
-                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.inter(
+                        fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     DateFormat('hh:mm:ss a').format(log.createdAt),
-                    style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+                    style: GoogleFonts.inter(
+                        fontSize: 11, color: AppColors.textLight),
                   ),
                 ],
               )),
               DataCell(_buildRoleBadge(log.userRole)),
+              DataCell(
+                Text(
+                  log.actorName != null && log.actorName!.isNotEmpty
+                      ? log.actorName!
+                      : '-',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.black,
+                  ),
+                ),
+              ),
               DataCell(_buildActionBadge(log.action)),
               DataCell(Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.black.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(4),
@@ -165,7 +187,8 @@ class LogTable extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '#${log.entityId.substring(log.entityId.length - 8)}',
-                    style: GoogleFonts.firaCode(fontSize: 11, color: AppColors.textLight),
+                    style: GoogleFonts.firaCode(
+                        fontSize: 11, color: AppColors.textLight),
                   ),
                 ],
               )),
@@ -174,15 +197,18 @@ class LogTable extends StatelessWidget {
                   onTap: () => _showLogDetails(context, log),
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.accentGreen.withOpacity(0.3)),
+                      border: Border.all(
+                          color: AppColors.accentGreen.withOpacity(0.3)),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.remove_red_eye_outlined, size: 14, color: AppColors.accentGreen),
+                        const Icon(Icons.remove_red_eye_outlined,
+                            size: 14, color: AppColors.accentGreen),
                         const SizedBox(width: 6),
                         Text(
                           'View Audit',
@@ -226,28 +252,47 @@ class LogTable extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildRoleBadge(log.userRole),
+                  Row(
+                    children: [
+                      _buildRoleBadge(log.userRole),
+                      if (log.actorName != null && log.actorName!.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          log.actorName!,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.black,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                   Text(
                     DateFormat('MMM dd, hh:mm a').format(log.createdAt),
-                    style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+                    style: GoogleFonts.inter(
+                        fontSize: 11, color: AppColors.textLight),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 log.action.replaceAll('_', ' '),
-                style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
+                style: GoogleFonts.inter(
+                    fontSize: 15, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   Text(
                     'Target: ',
-                    style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: AppColors.textLight),
                   ),
                   Text(
                     '${log.entityType} (#${log.entityId.substring(log.entityId.length - 6)})',
-                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500),
+                    style: GoogleFonts.inter(
+                        fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -261,7 +306,8 @@ class LogTable extends StatelessWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.accentGreen,
                     backgroundColor: AppColors.accentGreen.withOpacity(0.05),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
@@ -339,7 +385,9 @@ class LogTable extends StatelessWidget {
 
   Widget _buildActionBadge(String action) {
     Color color = AppColors.primaryColor;
-    if (action.contains('PAUSE') || action.contains('CANCEL') || action.contains('DELETE')) {
+    if (action.contains('PAUSE') ||
+        action.contains('CANCEL') ||
+        action.contains('DELETE')) {
       color = AppColors.accentRed;
     } else if (action.contains('PICKUP') || action.contains('WAITING')) {
       color = AppColors.accentOrange;
@@ -367,27 +415,35 @@ class LogTable extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.black.withOpacity(0.05))),
+        border:
+            Border(top: BorderSide(color: AppColors.black.withOpacity(0.05))),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Showing page ${pagination.page} of ${pagination.totalPages}',
-            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight, fontWeight: FontWeight.w500),
+            style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppColors.textLight,
+                fontWeight: FontWeight.w500),
           ),
           Row(
             children: [
               _buildPageIconBtn(
                 icon: Icons.chevron_left,
                 isSelected: pagination.page > 1,
-                onTap: pagination.page > 1 ? () => onPageChanged(pagination.page - 1) : null,
+                onTap: pagination.page > 1
+                    ? () => onPageChanged(pagination.page - 1)
+                    : null,
               ),
               const SizedBox(width: 8),
               _buildPageIconBtn(
                 icon: Icons.chevron_right,
                 isSelected: pagination.page < pagination.totalPages,
-                onTap: pagination.page < pagination.totalPages ? () => onPageChanged(pagination.page + 1) : null,
+                onTap: pagination.page < pagination.totalPages
+                    ? () => onPageChanged(pagination.page + 1)
+                    : null,
               ),
             ],
           ),
@@ -396,17 +452,20 @@ class LogTable extends StatelessWidget {
     );
   }
 
-  Widget _buildPageIconBtn({required IconData icon, required bool isSelected, VoidCallback? onTap}) {
+  Widget _buildPageIconBtn(
+      {required IconData icon, required bool isSelected, VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.black : AppColors.black.withOpacity(0.02),
+          color:
+              isSelected ? AppColors.black : AppColors.black.withOpacity(0.02),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, size: 18, color: isSelected ? Colors.white : AppColors.textLight),
+        child: Icon(icon,
+            size: 18, color: isSelected ? Colors.white : AppColors.textLight),
       ),
     );
   }
@@ -424,7 +483,10 @@ class LogTable extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40, offset: const Offset(0, 20)),
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 40,
+                  offset: const Offset(0, 20)),
             ],
           ),
           child: Material(
@@ -437,7 +499,8 @@ class LogTable extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: AppColors.black,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(28)),
                   ),
                   child: Row(
                     children: [
@@ -447,7 +510,8 @@ class LogTable extends StatelessWidget {
                           color: Colors.white.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.analytics_outlined, color: Colors.white, size: 20),
+                        child: const Icon(Icons.analytics_outlined,
+                            color: Colors.white, size: 20),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -456,11 +520,16 @@ class LogTable extends StatelessWidget {
                           children: [
                             Text(
                               'Audit Report',
-                              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                              style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
                             ),
                             Text(
                               'Activity ID: ${log.id}',
-                              style: GoogleFonts.inter(color: Colors.white.withOpacity(0.5), fontSize: 11),
+                              style: GoogleFonts.inter(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 11),
                             ),
                           ],
                         ),
@@ -479,13 +548,33 @@ class LogTable extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSummaryItem(Icons.person_outline, 'Initiated By', '${log.userRole.toUpperCase()} (ID: ${log.userId.substring(0, 8)}...)'),
-                        _buildSummaryItem(Icons.touch_app_outlined, 'Action Taken', log.action.replaceAll('_', ' ')),
-                        _buildSummaryItem(Icons.calendar_today_outlined, 'Exact Time', DateFormat('MMMM dd, yyyy HH:mm:ss').format(log.createdAt)),
+                        _buildSummaryItem(
+                          Icons.person_outline,
+                          'Initiated By',
+                          log.actorName != null && log.actorName!.isNotEmpty
+                              ? '${log.actorName} (${log.userRole.toUpperCase()})'
+                              : log.userRole.toUpperCase(),
+                        ),
+                        _buildSummaryItem(
+                          Icons.fingerprint,
+                          'User ID',
+                          log.userId,
+                        ),
+                        _buildSummaryItem(Icons.touch_app_outlined,
+                            'Action Taken', log.action.replaceAll('_', ' ')),
+                        _buildSummaryItem(
+                            Icons.calendar_today_outlined,
+                            'Exact Time',
+                            DateFormat('MMMM dd, yyyy HH:mm:ss')
+                                .format(log.createdAt)),
                         const SizedBox(height: 24),
                         Text(
                           'ACTIVITY DATA',
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.textLight, letterSpacing: 1.5),
+                          style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textLight,
+                              letterSpacing: 1.5),
                         ),
                         const SizedBox(height: 12),
                         Container(
@@ -493,7 +582,8 @@ class LogTable extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.black.withOpacity(0.05)),
+                            border: Border.all(
+                                color: AppColors.black.withOpacity(0.05)),
                           ),
                           child: _buildHumanReadablePayload(log.parsedDetails),
                         ),
@@ -511,9 +601,13 @@ class LogTable extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.black,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
                       ),
-                      child: const Text('Close Audit', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: const Text('Close Audit',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -527,7 +621,7 @@ class LogTable extends StatelessWidget {
 
   Widget _buildHumanReadablePayload(Map<String, dynamic> data) {
     List<Widget> items = [];
-    
+
     // Flatten the common "details" nesting if it exists
     Map<String, dynamic> displayData = {};
     if (data.containsKey('details') && data['details'] is Map) {
@@ -541,7 +635,7 @@ class LogTable extends StatelessWidget {
 
     displayData.forEach((key, value) {
       if (value == null) return;
-      
+
       String label = key.replaceAll('_', ' ').split(' ').map((word) {
         if (word.isEmpty) return '';
         return word[0].toUpperCase() + word.substring(1).toLowerCase();
@@ -555,8 +649,10 @@ class LogTable extends StatelessWidget {
       } else {
         displayValue = value.toString();
         // Capitalize if it's a short string
-        if (displayValue.length < 20 && !displayValue.contains('-') && !displayValue.contains(':')) {
-           displayValue = displayValue.toUpperCase();
+        if (displayValue.length < 20 &&
+            !displayValue.contains('-') &&
+            !displayValue.contains(':')) {
+          displayValue = displayValue.toUpperCase();
         }
       }
 
@@ -601,7 +697,8 @@ class LogTable extends StatelessWidget {
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(20),
-        child: Text('No additional details provided.', style: GoogleFonts.inter(color: AppColors.textLight)),
+        child: Text('No additional details provided.',
+            style: GoogleFonts.inter(color: AppColors.textLight)),
       );
     }
 
@@ -621,8 +718,16 @@ class LogTable extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight, fontWeight: FontWeight.w500)),
-              Text(value, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.black)),
+              Text(label,
+                  style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppColors.textLight,
+                      fontWeight: FontWeight.w500)),
+              Text(value,
+                  style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black)),
             ],
           ),
         ],

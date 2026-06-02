@@ -39,6 +39,7 @@ class AdminLog {
   final String entityId;
   final String details;
   final DateTime createdAt;
+  final String? actorName;
 
   AdminLog({
     required this.id,
@@ -49,6 +50,7 @@ class AdminLog {
     required this.entityId,
     required this.details,
     required this.createdAt,
+    this.actorName,
   });
 
   factory AdminLog.fromJson(Map<String, dynamic> json) => AdminLog(
@@ -60,6 +62,7 @@ class AdminLog {
         entityId: json["entity_id"],
         details: json["details"],
         createdAt: DateTime.parse(json["created_at"]),
+        actorName: json["actor_name"] ?? json["actorName"] ?? json["ActorName"],
       );
 
   Map<String, dynamic> get parsedDetails {

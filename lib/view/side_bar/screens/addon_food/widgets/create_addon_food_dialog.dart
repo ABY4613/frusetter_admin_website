@@ -421,7 +421,7 @@ class _CreateAddonFoodDialogState extends State<CreateAddonFoodDialog> {
             border: Border.all(color: Colors.grey.shade300),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedCategory,
+            initialValue: _selectedCategory,
             decoration: const InputDecoration(
               prefixIcon:
                   Icon(Icons.category, color: AppColors.accentGreen, size: 20),
@@ -515,7 +515,7 @@ class _CreateAddonFoodDialogState extends State<CreateAddonFoodDialog> {
                 _isAvailable = value;
               });
             },
-            activeColor: AppColors.accentGreen,
+            activeThumbColor: AppColors.accentGreen,
           ),
         ],
       ),

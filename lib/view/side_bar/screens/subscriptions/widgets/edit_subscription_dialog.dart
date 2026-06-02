@@ -49,6 +49,18 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
   ];
   final List<String> _paymentStatusOptions = ['pending', 'paid', 'overdue'];
 
+  DateTime _calculateEndDate(DateTime startDate, int workingDays) {
+    DateTime date = startDate;
+    int count = 0;
+    while (count < workingDays) {
+      date = date.add(const Duration(days: 1));
+      if (date.weekday != DateTime.sunday) {
+        count++;
+      }
+    }
+    return date;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -73,7 +85,13 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         text: widget.subscription.pendingAmount.toStringAsFixed(2));
 
     _selectedDate = widget.subscription.startDate;
+    if (_selectedDate.weekday == DateTime.sunday) {
+      _selectedDate = _selectedDate.add(const Duration(days: 1));
+    }
     _endDate = widget.subscription.endDate;
+    if (_endDate.weekday == DateTime.sunday) {
+      _endDate = _endDate.subtract(const Duration(days: 1));
+    }
     _prefsController =
         TextEditingController(text: widget.subscription.preferences ?? '[]');
     _selectedStatus = widget.subscription.status.name;
@@ -233,7 +251,10 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
 
                 // Start Date
                 _buildDateField("Start Date", _selectedDate, (date) {
-                  setState(() => _selectedDate = date);
+                  setState(() {
+                    _selectedDate = date;
+                    _endDate = _calculateEndDate(date, 24);
+                  });
                 }),
                 const SizedBox(height: 16),
 
@@ -418,7 +439,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
             }
 
             return DropdownButtonFormField<MealPlan>(
-              value: _selectedPlan,
+              initialValue: _selectedPlan,
               decoration: InputDecoration(
                 hintText: 'Select a plan',
                 hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -502,7 +523,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedStatus,
+          initialValue: _selectedStatus,
           decoration: InputDecoration(
             hintText: 'Select status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -561,7 +582,7 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedPaymentStatus,
+          initialValue: _selectedPaymentStatus,
           decoration: InputDecoration(
             hintText: 'Select payment status',
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
@@ -715,6 +736,12 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
 
   Widget _buildDateField(
       String label, DateTime date, Function(DateTime) onSelect) {
+    // Ensure the initialDate is not Sunday to avoid Flutter showDatePicker assert failure
+    DateTime initialDate = date;
+    if (initialDate.weekday == DateTime.sunday) {
+      initialDate = initialDate.add(const Duration(days: 1));
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -731,9 +758,12 @@ class _EditSubscriptionDialogState extends State<EditSubscriptionDialog> {
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
-              initialDate: date,
+              initialDate: initialDate,
               firstDate: DateTime(2020),
               lastDate: DateTime(2030),
+              selectableDayPredicate: (DateTime day) {
+                return day.weekday != DateTime.sunday;
+              },
             );
             if (picked != null) {
               onSelect(picked);

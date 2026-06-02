@@ -240,7 +240,7 @@ class SubscriptionController with ChangeNotifier {
         final year = date.year.toString().padLeft(4, '0');
         final month = date.month.toString().padLeft(2, '0');
         final day = date.day.toString().padLeft(2, '0');
-        return '${year}-${month}-${day}T12:00:00+05:30';
+        return '$year-$month-${day}T12:00:00+05:30';
       }
 
       final body = {
@@ -335,13 +335,13 @@ class SubscriptionController with ChangeNotifier {
         final year = startDate.year.toString().padLeft(4, '0');
         final month = startDate.month.toString().padLeft(2, '0');
         final day = startDate.day.toString().padLeft(2, '0');
-        body["start_date"] = '${year}-${month}-${day}T12:00:00+05:30';
+        body["start_date"] = '$year-$month-${day}T12:00:00+05:30';
       }
       if (endDate != null) {
         final year = endDate.year.toString().padLeft(4, '0');
         final month = endDate.month.toString().padLeft(2, '0');
         final day = endDate.day.toString().padLeft(2, '0');
-        body["end_date"] = '${year}-${month}-${day}T12:00:00+05:30';
+        body["end_date"] = '$year-$month-${day}T12:00:00+05:30';
       }
       if (amountPaid != null) {
         body["amount_paid"] = amountPaid;
